@@ -200,7 +200,7 @@ session.insert_tablet(np_tablet_)
 
 # insert one unsorted numpy tablet into the database.
 np_values_unsorted = [
-    np.array([False, False, False, True, True], np.dtype(">?")),
+    np.array([False, False, False, True, True], np.dtype('>?')),
     np.array([0, 10, 100, 1000, 10000], np.dtype(">i4")),
     np.array([1, 11, 111, 1111, 11111], np.dtype(">i8")),
     np.array([1.1, 1.25, 188.1, 0, 8.999], np.dtype(">f4")),
