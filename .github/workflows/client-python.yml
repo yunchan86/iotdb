@@ -59,7 +59,7 @@ jobs:
       - name: Install IoTDB python client requirements
         run: pip3 install -r client-py/requirements_dev.txt
       - name: Check python code format
-        run: black --check client-py
+        run: python -m black --check client-py
       - name: Integration test
         shell: bash
         run: |
