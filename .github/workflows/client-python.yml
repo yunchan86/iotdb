@@ -57,9 +57,9 @@ jobs:
           docker build . -f docker/src/main/Dockerfile-single -t "iotdb:dev"
           docker images
       - name: Install IoTDB python client requirements
-        run: pip3 install -r client-py/requirements_dev.txt
+        run: cd client-py && pip3 install -r requirements_dev.txt
       - name: Check python code format
-        run: cd client-py && python -m black --check .
+        run: python -m black --check .
       - name: Integration test
         shell: bash
         run: |
