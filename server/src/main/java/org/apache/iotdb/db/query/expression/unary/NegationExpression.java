@@ -21,10 +21,13 @@ package org.apache.iotdb.db.query.expression.unary;
 
 import org.apache.iotdb.db.exception.query.LogicalOptimizeException;
 import org.apache.iotdb.db.exception.query.QueryProcessException;
+import org.apache.iotdb.db.exception.sql.StatementAnalyzeException;
 import org.apache.iotdb.db.metadata.path.PartialPath;
+import org.apache.iotdb.db.mpp.common.schematree.PathPatternTree;
+import org.apache.iotdb.db.mpp.sql.rewriter.WildcardsRemover;
 import org.apache.iotdb.db.qp.physical.crud.UDTFPlan;
-import org.apache.iotdb.db.qp.utils.WildcardsRemover;
 import org.apache.iotdb.db.query.expression.Expression;
+import org.apache.iotdb.db.query.expression.ExpressionType;
 import org.apache.iotdb.db.query.udf.core.executor.UDTFExecutor;
 import org.apache.iotdb.db.query.udf.core.layer.IntermediateLayer;
 import org.apache.iotdb.db.query.udf.core.layer.LayerMemoryAssigner;
@@ -34,8 +37,10 @@ import org.apache.iotdb.db.query.udf.core.layer.SingleInputColumnSingleReference
 import org.apache.iotdb.db.query.udf.core.transformer.ArithmeticNegationTransformer;
 import org.apache.iotdb.db.query.udf.core.transformer.Transformer;
 import org.apache.iotdb.tsfile.file.metadata.enums.TSDataType;
+import org.apache.iotdb.tsfile.utils.ReadWriteIOUtils;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -73,7 +78,19 @@ public class NegationExpression extends Expression {
   @Override
   public boolean isUserDefinedAggregationFunctionExpression() {
     return expression.isUserDefinedAggregationFunctionExpression()
-        || expression.isPlainAggregationFunctionExpression();
+        || expression.isBuiltInAggregationFunctionExpression();
+  }
+
+  @Override
+  public void concat(
+      List<PartialPath> prefixPaths,
+      List<Expression> resultExpressions,
+      PathPatternTree patternTree) {
+    List<Expression> resultExpressionsForRecursion = new ArrayList<>();
+    expression.concat(prefixPaths, resultExpressionsForRecursion, patternTree);
+    for (Expression resultExpression : resultExpressionsForRecursion) {
+      resultExpressions.add(new NegationExpression(resultExpression));
+    }
   }
 
   @Override
@@ -87,6 +104,18 @@ public class NegationExpression extends Expression {
 
   @Override
   public void removeWildcards(WildcardsRemover wildcardsRemover, List<Expression> resultExpressions)
+      throws StatementAnalyzeException {
+    List<Expression> resultExpressionsForRecursion = new ArrayList<>();
+    expression.removeWildcards(wildcardsRemover, resultExpressionsForRecursion);
+    for (Expression resultExpression : resultExpressionsForRecursion) {
+      resultExpressions.add(new NegationExpression(resultExpression));
+    }
+  }
+
+  @Override
+  public void removeWildcards(
+      org.apache.iotdb.db.qp.utils.WildcardsRemover wildcardsRemover,
+      List<Expression> resultExpressions)
       throws LogicalOptimizeException {
     List<Expression> resultExpressionsForRecursion = new ArrayList<>();
     expression.removeWildcards(wildcardsRemover, resultExpressionsForRecursion);
@@ -154,5 +183,20 @@ public class NegationExpression extends Expression {
   @Override
   public String getExpressionStringInternal() {
     return "-" + expression.toString();
+  }
+
+  public static NegationExpression deserialize(ByteBuffer buffer) {
+    boolean isConstantOperandCache = ReadWriteIOUtils.readBool(buffer);
+    Expression expression = ExpressionType.deserialize(buffer);
+    NegationExpression negationExpression = new NegationExpression(expression);
+    negationExpression.isConstantOperandCache = isConstantOperandCache;
+    return negationExpression;
+  }
+
+  @Override
+  public void serialize(ByteBuffer byteBuffer) {
+    ExpressionType.Negation.serialize(byteBuffer);
+    super.serialize(byteBuffer);
+    expression.serialize(byteBuffer);
   }
 }

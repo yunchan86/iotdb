@@ -18,8 +18,8 @@
  */
 package org.apache.iotdb.db.sync.sender.transfer;
 
-import org.apache.iotdb.db.concurrent.IoTDBThreadPoolFactory;
-import org.apache.iotdb.db.concurrent.ThreadName;
+import org.apache.iotdb.commons.concurrent.IoTDBThreadPoolFactory;
+import org.apache.iotdb.commons.concurrent.ThreadName;
 import org.apache.iotdb.db.conf.IoTDBConfig;
 import org.apache.iotdb.db.conf.IoTDBDescriptor;
 import org.apache.iotdb.db.engine.storagegroup.TsFileResource;
@@ -106,16 +106,16 @@ public class SyncClient implements ISyncClient {
 
   private SyncService.Client serviceClient;
 
-  // logicalSg -> <virtualSg, timeRangeId>
+  // logicalSg -> <dataregion, timeRangeId>
   private Map<String, Map<Long, Set<Long>>> allSG;
 
-  // logicalSg -> <virtualSg, <timeRangeId, tsfiles>>
+  // logicalSg -> <dataregion, <timeRangeId, tsfiles>>
   private Map<String, Map<Long, Map<Long, Set<File>>>> toBeSyncedFilesMap;
 
-  // logicalSg -> <virtualSg, <timeRangeId, tsfiles>>
+  // logicalSg -> <dataregion, <timeRangeId, tsfiles>>
   private Map<String, Map<Long, Map<Long, Set<File>>>> deletedFilesMap;
 
-  // logicalSg -> <virtualSg, <timeRangeId, tsfiles>>
+  // logicalSg -> <dataregion, <timeRangeId, tsfiles>>
   private Map<String, Map<Long, Map<Long, Set<File>>>> lastLocalFilesMap;
 
   /** If true, sync is in execution. */

@@ -35,6 +35,14 @@ public class StorageGroupEntityMNode extends EntityMNode implements IStorageGrou
   }
 
   @Override
+  public String getFullPath() {
+    if (fullPath == null) {
+      fullPath = concatFullPath().intern();
+    }
+    return fullPath;
+  }
+
+  @Override
   public long getDataTTL() {
     return dataTTL;
   }
@@ -42,6 +50,11 @@ public class StorageGroupEntityMNode extends EntityMNode implements IStorageGrou
   @Override
   public void setDataTTL(long dataTTL) {
     this.dataTTL = dataTTL;
+  }
+
+  @Override
+  public void moveDataToNewMNode(IMNode newMNode) {
+    super.moveDataToNewMNode(newMNode);
   }
 
   @Override

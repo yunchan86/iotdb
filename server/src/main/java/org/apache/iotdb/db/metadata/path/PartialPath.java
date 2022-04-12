@@ -18,6 +18,7 @@
  */
 package org.apache.iotdb.db.metadata.path;
 
+import org.apache.iotdb.commons.utils.TestOnly;
 import org.apache.iotdb.db.engine.memtable.IMemTable;
 import org.apache.iotdb.db.engine.modification.Modification;
 import org.apache.iotdb.db.engine.querycontext.QueryDataSource;
@@ -31,7 +32,6 @@ import org.apache.iotdb.db.query.context.QueryContext;
 import org.apache.iotdb.db.query.executor.fill.LastPointReader;
 import org.apache.iotdb.db.query.filter.TsFileFilter;
 import org.apache.iotdb.db.query.reader.series.SeriesReader;
-import org.apache.iotdb.db.utils.TestOnly;
 import org.apache.iotdb.tsfile.common.constant.TsFileConstant;
 import org.apache.iotdb.tsfile.file.metadata.IChunkMetadata;
 import org.apache.iotdb.tsfile.file.metadata.ITimeSeriesMetadata;
@@ -39,6 +39,7 @@ import org.apache.iotdb.tsfile.file.metadata.enums.TSDataType;
 import org.apache.iotdb.tsfile.read.common.Path;
 import org.apache.iotdb.tsfile.read.filter.basic.Filter;
 import org.apache.iotdb.tsfile.utils.Pair;
+import org.apache.iotdb.tsfile.utils.ReadWriteIOUtils;
 import org.apache.iotdb.tsfile.write.schema.IMeasurementSchema;
 import org.apache.iotdb.tsfile.write.writer.RestorableTsFileIOWriter;
 
@@ -47,6 +48,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -55,8 +57,8 @@ import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static org.apache.iotdb.db.conf.IoTDBConstant.MULTI_LEVEL_PATH_WILDCARD;
-import static org.apache.iotdb.db.conf.IoTDBConstant.ONE_LEVEL_PATH_WILDCARD;
+import static org.apache.iotdb.commons.conf.IoTDBConstant.MULTI_LEVEL_PATH_WILDCARD;
+import static org.apache.iotdb.commons.conf.IoTDBConstant.ONE_LEVEL_PATH_WILDCARD;
 
 /**
  * A prefix path, suffix path or fullPath generated from SQL. Usually used in the IoTDB server
@@ -564,5 +566,33 @@ public class PartialPath extends Path implements Comparable<Path>, Cloneable {
   public List<IChunkMetadata> getVisibleMetadataListFromWriter(
       RestorableTsFileIOWriter writer, TsFileResource tsFileResource, QueryContext context) {
     throw new UnsupportedOperationException("Should call exact sub class!");
+  }
+
+  public void serialize(ByteBuffer byteBuffer) {
+    PathType.Partial.serialize(byteBuffer);
+    serializeWithoutType(byteBuffer);
+  }
+
+  protected void serializeWithoutType(ByteBuffer byteBuffer) {
+    super.serializeWithoutType(byteBuffer);
+    ReadWriteIOUtils.write(nodes.length, byteBuffer);
+    for (String node : nodes) {
+      ReadWriteIOUtils.write(node, byteBuffer);
+    }
+  }
+
+  public static PartialPath deserialize(ByteBuffer byteBuffer) {
+    Path path = Path.deserialize(byteBuffer);
+    PartialPath partialPath = new PartialPath();
+    int nodeSize = ReadWriteIOUtils.readInt(byteBuffer);
+    String[] nodes = new String[nodeSize];
+    for (int i = 0; i < nodeSize; i++) {
+      nodes[i] = ReadWriteIOUtils.readString(byteBuffer);
+    }
+    partialPath.nodes = nodes;
+    partialPath.setMeasurement(path.getMeasurement());
+    partialPath.device = path.getDevice();
+    partialPath.fullPath = path.getFullPath();
+    return partialPath;
   }
 }

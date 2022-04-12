@@ -39,6 +39,14 @@ public class StorageGroupMNode extends InternalMNode implements IStorageGroupMNo
   }
 
   @Override
+  public String getFullPath() {
+    if (fullPath == null) {
+      fullPath = concatFullPath().intern();
+    }
+    return fullPath;
+  }
+
+  @Override
   public long getDataTTL() {
     return dataTTL;
   }
@@ -46,6 +54,11 @@ public class StorageGroupMNode extends InternalMNode implements IStorageGroupMNo
   @Override
   public void setDataTTL(long dataTTL) {
     this.dataTTL = dataTTL;
+  }
+
+  @Override
+  public void moveDataToNewMNode(IMNode newMNode) {
+    super.moveDataToNewMNode(newMNode);
   }
 
   @Override

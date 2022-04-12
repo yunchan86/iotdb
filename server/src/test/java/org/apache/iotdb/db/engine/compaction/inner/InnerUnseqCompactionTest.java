@@ -22,7 +22,7 @@ package org.apache.iotdb.db.engine.compaction.inner;
 import org.apache.iotdb.db.engine.cache.ChunkCache;
 import org.apache.iotdb.db.engine.cache.TimeSeriesMetadataCache;
 import org.apache.iotdb.db.engine.compaction.CompactionUtils;
-import org.apache.iotdb.db.engine.compaction.inner.utils.InnerSpaceCompactionUtils;
+import org.apache.iotdb.db.engine.compaction.performer.impl.ReadPointCompactionPerformer;
 import org.apache.iotdb.db.engine.compaction.utils.CompactionCheckerUtils;
 import org.apache.iotdb.db.engine.compaction.utils.CompactionClearUtils;
 import org.apache.iotdb.db.engine.compaction.utils.CompactionConfigRestorer;
@@ -98,11 +98,11 @@ public class InnerUnseqCompactionTest {
 
   @Before
   public void setUp() throws MetadataException {
-    IoTDB.metaManager.init();
-    IoTDB.metaManager.setStorageGroup(new PartialPath(COMPACTION_TEST_SG));
+    IoTDB.configManager.init();
+    IoTDB.schemaProcessor.setStorageGroup(new PartialPath(COMPACTION_TEST_SG));
     for (String fullPath : fullPaths) {
       PartialPath path = new PartialPath(fullPath);
-      IoTDB.metaManager.createTimeseries(
+      IoTDB.schemaProcessor.createTimeseries(
           path,
           TSDataType.INT64,
           TSEncoding.valueOf(TSFileDescriptor.getInstance().getConfig().getValueEncoder()),
@@ -118,7 +118,7 @@ public class InnerUnseqCompactionTest {
     CompactionClearUtils.clearAllCompactionFiles();
     ChunkCache.getInstance().clear();
     TimeSeriesMetadataCache.getInstance().clear();
-    IoTDB.metaManager.clear();
+    IoTDB.configManager.clear();
     EnvironmentUtils.cleanAllDir();
     Thread.currentThread().setName(oldThreadName);
     CompactionClearUtils.deleteEmptyDir(new File("target"));
@@ -366,14 +366,14 @@ public class InnerUnseqCompactionTest {
                         timeValuePair.getTimestamp() >= 250L
                             && timeValuePair.getTimestamp() <= 300L);
               }
-              CompactionUtils.compact(
-                  Collections.emptyList(),
-                  toMergeResources,
-                  Collections.singletonList(targetTsFileResource));
+              new ReadPointCompactionPerformer(
+                      Collections.emptyList(),
+                      toMergeResources,
+                      Collections.singletonList(targetTsFileResource))
+                  .perform();
               CompactionUtils.moveTargetFile(
                   Collections.singletonList(targetTsFileResource), true, COMPACTION_TEST_SG);
-              InnerSpaceCompactionUtils.combineModsInCompaction(
-                  toMergeResources, targetTsFileResource);
+              CompactionUtils.combineModsInInnerCompaction(toMergeResources, targetTsFileResource);
               List<TsFileResource> targetTsFileResources = new ArrayList<>();
               targetTsFileResources.add(targetTsFileResource);
               CompactionCheckerUtils.checkDataAndResource(sourceData, targetTsFileResources);

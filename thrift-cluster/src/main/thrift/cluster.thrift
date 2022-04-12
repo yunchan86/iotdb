@@ -17,7 +17,7 @@
  * under the License.
  */
 
-include "rpc.thrift"
+include "common.thrift"
 namespace java org.apache.iotdb.cluster.rpc.thrift
 namespace py iotdb.thrift.cluster
 
@@ -56,6 +56,7 @@ struct HeartBeatResponse {
   // because a data server may play many data groups members, this is used to identify which
   // member should process the request or response. Only used in data group communication.
   7: optional Node header
+  8: required bool installingSnapshot // whether the follower is installing snapshot now
 }
 
 struct RequestCommitIndexResponse {
@@ -326,7 +327,7 @@ service RaftService {
   /**
   * Execute a binarized non-query PhysicalPlan
   **/
-  rpc.TSStatus executeNonQueryPlan(1:ExecutNonQueryReq request)
+  common.TSStatus executeNonQueryPlan(1:ExecutNonQueryReq request)
 
   /**
   * Ask the leader for its commit index, used to check whether the node has caught up with the

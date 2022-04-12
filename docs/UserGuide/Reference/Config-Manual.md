@@ -197,6 +197,24 @@ The permission definitions are in ${IOTDB\_CONF}/conf/jmx.access.
 |Effective|After restarting system|
 
 
+* freq_snr
+
+|Name| freq_snr |
+|:---:|:---|
+|Description| Signal-noise-ratio (SNR) of lossy FREQ encoding |
+|Type|Double|
+|Default| 40.0 |
+|Effective|Trigger|
+
+
+* freq_block_size
+
+|Name| freq_block_size |
+|:---:|:---|
+|Description| Block size of FREQ encoding. In other words, the number of data points in a time-frequency transformation. To speed up the encoding, it is recommended to be the power of 2. |
+|Type|Int32|
+|Default| 1024 |
+|Effective|Trigger|
 
 ### Engine Layer
 
@@ -350,33 +368,6 @@ The permission definitions are in ${IOTDB\_CONF}/conf/jmx.access.
 |Name| unseq\_memtable\_flush\_check\_interval\_in\_ms |
 |:---:|:---|
 |Description| the interval to check whether unsequence memtables need flushing |
-|Type|Int32|
-|Default| 600000 |
-|Effective| Trigger |
-
-* enable\_timed\_close\_tsfile
-
-|Name| enable\_timed\_close\_tsfile |
-|:---:|:---|
-|Description| whether to timed close tsfiles |
-|Type|Bool|
-|Default| false |
-|Effective| Trigger |
-
-* close\_tsfile\_interval\_after\_flushing\_in\_ms
-
-|Name| close\_tsfile\_interval\_after\_flushing\_in\_ms |
-|:---:|:---|
-|Description| if a TsfileProcessor's last working memtable flush time is older than current time minus this and its working memtable is null, the TsfileProcessor will be closed |
-|Type|Int32|
-|Default| 3600000 |
-|Effective| Trigger |
-
-* close\_tsfile\_check\_interval\_in\_ms
-
-|Name| close\_tsfile\_check\_interval\_in\_ms |
-|:---:|:---|
-|Description| the interval to check whether tsfiles need closing |
 |Type|Int32|
 |Default| 600000 |
 |Effective| Trigger |
@@ -791,9 +782,9 @@ The permission definitions are in ${IOTDB\_CONF}/conf/jmx.access.
 
 |Name| compaction\_priority |
 |:---:|:---|
-|Description| Priority of compaction task. When it is balance, system executes all types of compaction equally; when it is inner_cross, system takes precedence over executing inner space compaction task; when it is cross_inner, system takes precedence over executing cross space compaction task |
+|Description| Priority of compaction task. When it is BALANCE, system executes all types of compaction equally; when it is INNER_CROSS, system takes precedence over executing inner space compaction task; when it is CROSS_INNER, system takes precedence over executing cross space compaction task |
 |Type| String |
-|Default| balance|
+|Default| BALANCE|
 |Effective|After restart system|
 
 * target\_compaction\_file\_size
@@ -998,15 +989,16 @@ The permission definitions are in ${IOTDB\_CONF}/conf/jmx.access.
 |Default| 604800 |
 |Effective|Only allowed to be modified in first start up|
 
-* virtual\_storage\_group\_num
+* data\_region\_num
 
-|Name| virtual\_storage\_group\_num |
-|:---:|:---|
-|Description| number of virtual storage groups per user-defined storage group, a virtual storage group is the unit of parallelism in memory as all ingestions in one virtual storage group are serialized, recommended value is [virtual storage group number] = [CPU core number] / [user-defined storage group number]|
-|Type| LONG |
-|Default| 1 |
-|Effective|Only allowed to be modified in first start up|
+|    Name     | data\_region\_num                                                                                                                                                                                                                                                  |
+|:-----------:|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Description | number of data regions per user-defined storage group, a data region is the unit of parallelism in memory as all ingestions in one data region are serialized, recommended value is [data region number] = [CPU core number] / [user-defined storage group number] |
+|    Type     | LONG                                                                                                                                                                                                                                                               |
+|   Default   | 1                                                                                                                                                                                                                                                                  |
+|  Effective  | Only allowed to be modified in first start up                                                                                                                                                                                                                      |
 
+<!--
 * enable\_id\_table
 
 |Name| enable\_id\_table |
@@ -1033,6 +1025,8 @@ The permission definitions are in ${IOTDB\_CONF}/conf/jmx.access.
 |Type| bool |
 |Default| false |
 |Effective|After restarting system|
+
+-->
 
 ### UDF
 
