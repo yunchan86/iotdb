@@ -28,3 +28,7 @@ header:
     - 'zeppelin-interpreter/src/main/resources/interpreter-setting.json'
 
   comment: on-failure
+
+dependency:
+  files:
+    - pom.xml
