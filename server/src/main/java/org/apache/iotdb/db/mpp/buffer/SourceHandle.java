@@ -209,16 +209,8 @@ public class SourceHandle implements ISourceHandle {
     logger.info(
         "[SourceHandle {}]: No more TsBlock. {} ", localPlanNodeId, remoteFragmentInstanceId);
     this.lastSequenceId = lastSequenceId;
-    if (!blocked.isDone() && currSequenceId - 1 == lastSequenceId) {
-      logger.info(
-          "[SourceHandle {}]: all blocks are consumed. set blocked to null.", localPlanNodeId);
+    if (!blocked.isDone() && remoteTsBlockedConsumedUp()) {
       blocked.set(null);
-    } else {
-      logger.info(
-          "[SourceHandle {}]: No need to set blocked. Blocked: {}, Consumed: {} ",
-          localPlanNodeId,
-          blocked.isDone(),
-          currSequenceId - 1 == lastSequenceId);
     }
   }
 
@@ -252,7 +244,14 @@ public class SourceHandle implements ISourceHandle {
 
   @Override
   public boolean isFinished() {
-    return throwable == null && currSequenceId - 1 == lastSequenceId;
+    return throwable == null && remoteTsBlockedConsumedUp();
+  }
+
+  // Return true indicates two points:
+  //   1. Remote SinkHandle has told SourceHandle the total count of TsBlocks by lastSequenceId
+  //   2. All the TsBlocks has been consumed up
+  private boolean remoteTsBlockedConsumedUp() {
+    return currSequenceId - 1 == lastSequenceId;
   }
 
   String getRemoteHostname() {
