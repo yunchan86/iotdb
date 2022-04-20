@@ -24,4 +24,3 @@ package org.apache.iotdb.db.mpp.sql.statement;
  * statements which need to be transformed into IConfigTask should extend this class
  */
 public abstract class ConfigStatement extends Statement {}
-
