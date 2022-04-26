@@ -27,14 +27,16 @@ public class DoubleRAKEDecoder extends RAKEDecoder {
     parseBuffer(buffer, 64);
     String subNumBuffer = numBuffer.substring(0, 64);
     this.numBuffer = "";
-    if (subNumBuffer.charAt(0) == '0')
-      return Double.longBitsToDouble(Long.parseUnsignedLong(subNumBuffer, 2));
-    else {
+    if (subNumBuffer.charAt(0) == '0') {
+      double r = Double.longBitsToDouble(Long.parseUnsignedLong(subNumBuffer, 2));
+      return r;
+    } else {
       String tmpSubNumBuffer = "0";
       for (int i = 1; i < subNumBuffer.length(); i++) {
         tmpSubNumBuffer += subNumBuffer.charAt(i);
       }
-      return -Double.longBitsToDouble(Long.parseUnsignedLong(tmpSubNumBuffer, 2));
+      double r = -Double.longBitsToDouble(Long.parseUnsignedLong(tmpSubNumBuffer, 2));
+      return r;
     }
   }
 }

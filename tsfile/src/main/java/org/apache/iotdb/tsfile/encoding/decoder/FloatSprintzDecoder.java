@@ -130,7 +130,8 @@ public class FloatSprintzDecoder extends SprintzDecoder {
         logger.error("Error occured when readInt with Sprintz Decoder.", e);
       }
     }
-    currentValue = currentBuffer[currentCount++];
+    currentValue = currentBuffer[currentCount];
+    currentCount++;
     if (currentCount == decodeSize) {
       isBlockReaded = false;
       currentCount = 0;

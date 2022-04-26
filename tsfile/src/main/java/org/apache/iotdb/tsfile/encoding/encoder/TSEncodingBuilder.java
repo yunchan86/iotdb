@@ -76,6 +76,10 @@ public abstract class TSEncodingBuilder {
         return new Sprintz();
       case RLBE:
         return new RLBE();
+      case TEXTRLE:
+        return new TEXTRLE();
+      case HUFFMAN:
+        return new HUFFMAN();
       default:
         throw new UnsupportedOperationException(type.toString());
     }
@@ -147,6 +151,8 @@ public abstract class TSEncodingBuilder {
         case FLOAT:
         case DOUBLE:
           return new FloatEncoder(TSEncoding.RLE, type, maxPointNumber);
+        case TEXT:
+          return new TextRleEncoder();
         default:
           throw new UnSupportedDataTypeException("RLE doesn't support data type: " + type);
       }
@@ -382,6 +388,48 @@ public abstract class TSEncodingBuilder {
           return new DoubleRLBE();
         default:
           throw new UnSupportedDataTypeException("RLBE doesn't support data type: " + type);
+      }
+    }
+
+    @Override
+    public void initFromProps(Map<String, String> props) {
+      // do nothing
+    }
+  }
+
+  public static class HUFFMAN extends TSEncodingBuilder {
+    @Override
+    public Encoder getEncoder(TSDataType type) {
+      switch (type) {
+        case TEXT:
+          return new HuffmanEncoder();
+        case INT32:
+        case INT64:
+        case FLOAT:
+        case DOUBLE:
+        default:
+          throw new UnSupportedDataTypeException("HUFFMAN doesn't support data type: " + type);
+      }
+    }
+
+    @Override
+    public void initFromProps(Map<String, String> props) {
+      // do nothing
+    }
+  }
+
+  public static class TEXTRLE extends TSEncodingBuilder {
+    @Override
+    public Encoder getEncoder(TSDataType type) {
+      switch (type) {
+        case TEXT:
+          return new TextRleEncoder();
+        case INT32:
+        case INT64:
+        case FLOAT:
+        case DOUBLE:
+        default:
+          throw new UnSupportedDataTypeException("TEXTRLE doesn't support data type: " + type);
       }
     }
 

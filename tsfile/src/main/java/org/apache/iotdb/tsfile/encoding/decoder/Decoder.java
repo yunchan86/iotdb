@@ -24,11 +24,16 @@ import org.apache.iotdb.tsfile.file.metadata.enums.TSDataType;
 import org.apache.iotdb.tsfile.file.metadata.enums.TSEncoding;
 import org.apache.iotdb.tsfile.utils.Binary;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.ByteBuffer;
 
 public abstract class Decoder {
+
+  protected static final Logger logger = LoggerFactory.getLogger(Decoder.class);
 
   private static final String ERROR_MSG = "Decoder not found: %s , DataType is : %s";
 
@@ -61,6 +66,8 @@ public abstract class Decoder {
           case FLOAT:
           case DOUBLE:
             return new FloatDecoder(TSEncoding.valueOf(encoding.toString()), dataType);
+          case TEXT:
+            return new TextRleDecoder();
           default:
             throw new TsFileDecodingException(String.format(ERROR_MSG, encoding, dataType));
         }
@@ -148,6 +155,28 @@ public abstract class Decoder {
             return new FloatRAKEDecoder();
           case DOUBLE:
             return new DoubleRAKEDecoder();
+          default:
+            throw new TsFileDecodingException(String.format(ERROR_MSG, encoding, dataType));
+        }
+      case TEXTRLE:
+        switch (dataType) {
+          case TEXT:
+            return new TextRleDecoder();
+          case INT32:
+          case INT64:
+          case FLOAT:
+          case DOUBLE:
+          default:
+            throw new TsFileDecodingException(String.format(ERROR_MSG, encoding, dataType));
+        }
+      case HUFFMAN:
+        switch (dataType) {
+          case TEXT:
+            return new HuffmanDecoder();
+          case INT32:
+          case INT64:
+          case FLOAT:
+          case DOUBLE:
           default:
             throw new TsFileDecodingException(String.format(ERROR_MSG, encoding, dataType));
         }

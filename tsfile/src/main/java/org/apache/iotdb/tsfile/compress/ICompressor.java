@@ -25,6 +25,8 @@ import org.apache.iotdb.tsfile.file.metadata.enums.CompressionType;
 
 import net.jpountz.lz4.LZ4Compressor;
 import net.jpountz.lz4.LZ4Factory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.xerial.snappy.Snappy;
 
 import java.io.ByteArrayInputStream;
@@ -41,6 +43,8 @@ import static org.apache.iotdb.tsfile.file.metadata.enums.CompressionType.SNAPPY
 
 /** compress data according to type in schema. */
 public interface ICompressor extends Serializable {
+
+  Logger logger = LoggerFactory.getLogger(ICompressor.class);
 
   static ICompressor getCompressor(String name) {
     return getCompressor(CompressionType.valueOf(name));
@@ -149,7 +153,8 @@ public interface ICompressor extends Serializable {
       if (data == null) {
         return new byte[0];
       }
-      return Snappy.compress(data);
+      byte[] r = Snappy.compress(data);
+      return r;
     }
 
     @Override
@@ -168,12 +173,14 @@ public interface ICompressor extends Serializable {
 
     @Override
     public int compress(byte[] data, int offset, int length, byte[] compressed) throws IOException {
-      return Snappy.compress(data, offset, length, compressed, 0);
+      int r = Snappy.compress(data, offset, length, compressed, 0);
+      return r;
     }
 
     @Override
     public int compress(ByteBuffer data, ByteBuffer compressed) throws IOException {
-      return Snappy.compress(data, compressed);
+      int r = Snappy.compress(data, compressed);
+      return r;
     }
 
     @Override
@@ -201,23 +208,27 @@ public interface ICompressor extends Serializable {
       if (data == null) {
         return new byte[0];
       }
-      return compressor.compress(data);
+      byte[] r = compressor.compress(data);
+      return r;
     }
 
     @Override
     public byte[] compress(byte[] data, int offset, int length) throws IOException {
-      return compressor.compress(data, offset, length);
+      byte[] r = compressor.compress(data, offset, length);
+      return r;
     }
 
     @Override
     public int compress(byte[] data, int offset, int length, byte[] compressed) {
-      return compressor.compress(data, offset, length, compressed, 0);
+      int r = compressor.compress(data, offset, length, compressed, 0);
+      return r;
     }
 
     @Override
     public int compress(ByteBuffer data, ByteBuffer compressed) {
       compressor.compress(data, compressed);
-      return data.limit();
+      int r = data.limit();
+      return r;
     }
 
     @Override
@@ -237,7 +248,8 @@ public interface ICompressor extends Serializable {
       GZIPOutputStream gzip = new GZIPOutputStream(out);
       gzip.write(data);
       gzip.close();
-      return out.toByteArray();
+      byte[] r = out.toByteArray();
+      return r;
     }
 
     public static byte[] uncompress(byte[] data) throws IOException {
@@ -251,8 +263,8 @@ public interface ICompressor extends Serializable {
         out.write(buffer, 0, n);
       }
       in.close();
-
-      return out.toByteArray();
+      byte[] r = out.toByteArray();
+      return r;
     }
   }
 
@@ -262,15 +274,16 @@ public interface ICompressor extends Serializable {
       if (null == data) {
         return new byte[0];
       }
-
-      return GZIPCompress.compress(data);
+      byte[] r = GZIPCompress.compress(data);
+      return r;
     }
 
     @Override
     public byte[] compress(byte[] data, int offset, int length) throws IOException {
       byte[] dataBefore = new byte[length];
       System.arraycopy(data, offset, dataBefore, 0, length);
-      return GZIPCompress.compress(dataBefore);
+      byte[] r = GZIPCompress.compress(dataBefore);
+      return r;
     }
 
     /** @exception GZIPCompressOverflowException if compressed byte array is too small. */

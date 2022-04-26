@@ -19,6 +19,9 @@
 
 package org.apache.iotdb.tsfile.encoding.encoder;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
@@ -31,6 +34,9 @@ public class IntRLBE extends RLBE {
 
   /** previous value of original value */
   private int previousvalue;
+
+  /** logger */
+  private static final Logger logger = LoggerFactory.getLogger(IntRLBE.class);
 
   /** constructor of IntRLBE */
   public IntRLBE() {

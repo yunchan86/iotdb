@@ -26,16 +26,16 @@ public class IntRAKEDecoder extends RAKEDecoder {
   @Override
   public int readInt(ByteBuffer buffer) {
     parseBuffer(buffer, 32);
-    String subNumBuffer = numBuffer.substring(0, 32);
+    String subNumBuffer = numBuffer.substring(0, Math.min(32, numBuffer.length()));
     this.numBuffer = "";
-    if (subNumBuffer.charAt(0) == '0') return Integer.parseInt(subNumBuffer, 2);
-    else {
+    if (subNumBuffer.charAt(0) == '0') {
+      return Integer.parseInt(subNumBuffer, 2);
+    } else {
       String tmpSubNumBuffer = "0";
       for (int i = 1; i < subNumBuffer.length(); i++) {
         if (subNumBuffer.charAt(i) == '1') tmpSubNumBuffer += "0";
         else tmpSubNumBuffer += "1";
       }
-
       return -Integer.parseInt(tmpSubNumBuffer, 2) - 1;
     }
   }

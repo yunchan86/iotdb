@@ -27,14 +27,16 @@ public class FloatRAKEDecoder extends RAKEDecoder {
     parseBuffer(buffer, 32);
     String subNumBuffer = numBuffer.substring(0, 32);
     this.numBuffer = "";
-    if (subNumBuffer.charAt(0) == '0')
-      return Float.intBitsToFloat(Integer.parseUnsignedInt(subNumBuffer, 2));
-    else {
+    if (subNumBuffer.charAt(0) == '0') {
+      float r = Float.intBitsToFloat(Integer.parseUnsignedInt(subNumBuffer, 2));
+      return r;
+    } else {
       String tmpSubNumBuffer = "0";
       for (int i = 1; i < subNumBuffer.length(); i++) {
         tmpSubNumBuffer += subNumBuffer.charAt(i);
       }
-      return -Float.intBitsToFloat(Integer.parseUnsignedInt(tmpSubNumBuffer, 2));
+      float r = -Float.intBitsToFloat(Integer.parseUnsignedInt(tmpSubNumBuffer, 2));
+      return r;
     }
   }
 }

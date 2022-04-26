@@ -44,7 +44,7 @@ public abstract class RAKEEncoder extends Encoder {
   private int T;
   private int L;
   protected ByteArrayOutputStream byteCache;
-  private static final Logger logger = LoggerFactory.getLogger(RAKEEncoder.class);
+  protected static final Logger logger = LoggerFactory.getLogger(RAKEEncoder.class);
 
   /** constructor. * */
   public RAKEEncoder() {

@@ -189,7 +189,9 @@ public abstract class RAKEDecoder extends Decoder {
 
   @Override
   public boolean hasNext(ByteBuffer buffer) {
-    return buffer.remaining() > 0;
+    //    System.out.println(buffer);
+
+    return buffer.remaining() > 0 && numBuffer != "";
   }
 
   @Override
