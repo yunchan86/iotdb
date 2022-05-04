@@ -149,7 +149,7 @@ public class CrossSpaceCompactionTask extends AbstractCompactionTask {
       }
     } catch (Throwable throwable) {
       // catch throwable instead of exception to handle OOM errors
-      LOGGER.error("Meet errors in cross space compaction, {}", throwable.getMessage());
+      LOGGER.error("Meet errors in cross space compaction.");
       CompactionExceptionHandler.handleException(
           fullStorageGroupName,
           logFile,
@@ -223,6 +223,15 @@ public class CrossSpaceCompactionTask extends AbstractCompactionTask {
   @Override
   public int hashCode() {
     return toString().hashCode();
+  }
+
+  @Override
+  public boolean equals(Object other) {
+    if (!(other instanceof CrossSpaceCompactionTask)) {
+      return false;
+    }
+
+    return equalsOtherTask((CrossSpaceCompactionTask) other);
   }
 
   @Override

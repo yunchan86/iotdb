@@ -18,13 +18,14 @@
  */
 package org.apache.iotdb.db.wal.buffer;
 
+import org.apache.iotdb.commons.exception.IllegalPathException;
 import org.apache.iotdb.db.conf.IoTDBConfig;
 import org.apache.iotdb.db.conf.IoTDBDescriptor;
 import org.apache.iotdb.db.engine.memtable.AbstractMemTable;
 import org.apache.iotdb.db.engine.memtable.IMemTable;
-import org.apache.iotdb.db.exception.metadata.IllegalPathException;
-import org.apache.iotdb.db.mpp.sql.planner.plan.node.write.InsertRowNode;
-import org.apache.iotdb.db.mpp.sql.planner.plan.node.write.InsertTabletNode;
+import org.apache.iotdb.db.mpp.plan.planner.plan.node.PlanNodeType;
+import org.apache.iotdb.db.mpp.plan.planner.plan.node.write.InsertRowNode;
+import org.apache.iotdb.db.mpp.plan.planner.plan.node.write.InsertTabletNode;
 import org.apache.iotdb.db.qp.physical.PhysicalPlan;
 import org.apache.iotdb.db.qp.physical.crud.DeletePlan;
 import org.apache.iotdb.db.qp.physical.crud.InsertRowPlan;
@@ -159,10 +160,10 @@ public class WALEntry implements SerializedSize {
         value = AbstractMemTable.Factory.create(stream);
         break;
       case INSERT_ROW_NODE:
-        // TODO
+        value = (InsertRowNode) PlanNodeType.deserialize(stream);
         break;
       case INSERT_TABLET_NODE:
-        // TODO
+        value = (InsertTabletNode) PlanNodeType.deserialize(stream);
         break;
     }
     return new WALEntry(type, memTableId, value);

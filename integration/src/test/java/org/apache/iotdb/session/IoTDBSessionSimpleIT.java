@@ -19,12 +19,12 @@
 package org.apache.iotdb.session;
 
 import org.apache.iotdb.commons.conf.IoTDBConstant;
+import org.apache.iotdb.commons.exception.MetadataException;
+import org.apache.iotdb.commons.path.PartialPath;
 import org.apache.iotdb.db.conf.IoTDBDescriptor;
 import org.apache.iotdb.db.conf.OperationType;
-import org.apache.iotdb.db.exception.metadata.MetadataException;
 import org.apache.iotdb.db.metadata.LocalSchemaProcessor;
 import org.apache.iotdb.db.metadata.mnode.IMeasurementMNode;
-import org.apache.iotdb.db.metadata.path.PartialPath;
 import org.apache.iotdb.db.utils.EnvironmentUtils;
 import org.apache.iotdb.itbase.category.LocalStandaloneTest;
 import org.apache.iotdb.rpc.BatchExecutionException;
@@ -1455,7 +1455,7 @@ public class IoTDBSessionSimpleIT {
           session.insertTablet(tablet, true);
         } catch (StatementExecutionException e) {
           Assert.assertEquals(
-              "313: failed to insert measurements [s3] caused by DataType mismatch, Insert measurement s3 type TEXT, metadata tree type INT64",
+              "313: failed to insert measurements [s3] caused by DataType mismatch, Insert timeseries root.sg.d.s3 type TEXT, metadata tree type INT64",
               e.getMessage());
         }
         tablet.reset();
@@ -1468,7 +1468,7 @@ public class IoTDBSessionSimpleIT {
         session.insertTablet(tablet);
       } catch (StatementExecutionException e) {
         Assert.assertEquals(
-            "313: failed to insert measurements [s3] caused by DataType mismatch, Insert measurement s3 type TEXT, metadata tree type INT64",
+            "313: failed to insert measurements [s3] caused by DataType mismatch, Insert timeseries root.sg.d.s3 type TEXT, metadata tree type INT64",
             e.getMessage());
       }
       tablet.reset();

@@ -18,8 +18,9 @@
  */
 package org.apache.iotdb.db.wal.io;
 
-import org.apache.iotdb.db.exception.metadata.IllegalPathException;
-import org.apache.iotdb.db.metadata.path.PartialPath;
+import org.apache.iotdb.commons.exception.IllegalPathException;
+import org.apache.iotdb.commons.path.PartialPath;
+import org.apache.iotdb.db.constant.TestConstant;
 import org.apache.iotdb.db.qp.physical.crud.DeletePlan;
 import org.apache.iotdb.db.qp.physical.crud.InsertRowPlan;
 import org.apache.iotdb.db.qp.physical.crud.InsertTabletPlan;
@@ -41,10 +42,10 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 public class WALFileTest {
-  private final File walFile = new File("_0.wal");
+  private final File walFile = new File(TestConstant.BASE_OUTPUT_PATH.concat("_0.wal"));
   private final String devicePath = "root.test_sg.test_d";
 
   @Before

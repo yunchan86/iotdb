@@ -67,14 +67,14 @@ public class IoTDBMetadataFetchIT {
             "SET STORAGE GROUP TO root.ln2.wf01.wt01",
             "CREATE TIMESERIES root.ln.wf01.wt01.status WITH DATATYPE = BOOLEAN, ENCODING = PLAIN",
             "CREATE TIMESERIES root.ln.wf01.wt01.temperature WITH DATATYPE = FLOAT, ENCODING = RLE, "
-                + "compressor = SNAPPY, MAX_POINT_NUMBER = 3",
+                + "compressor = SNAPPY, 'MAX_POINT_NUMBER' = '3' ",
             "CREATE ALIGNED TIMESERIES root.ln.wf01.wt02(s1 INT32, s2 DOUBLE)",
             "CREATE TIMESERIES root.ln1.wf01.wt01.status WITH DATATYPE = BOOLEAN, ENCODING = PLAIN",
             "CREATE TIMESERIES root.ln1.wf01.wt01.temperature WITH DATATYPE = FLOAT, ENCODING = RLE, "
-                + "compressor = SNAPPY, MAX_POINT_NUMBER = 3",
+                + "compressor = SNAPPY, 'MAX_POINT_NUMBER' = '3'",
             "CREATE TIMESERIES root.ln2.wf01.wt01.status WITH DATATYPE = BOOLEAN, ENCODING = PLAIN",
             "CREATE TIMESERIES root.ln2.wf01.wt01.temperature WITH DATATYPE = FLOAT, ENCODING = RLE, "
-                + "compressor = SNAPPY, MAX_POINT_NUMBER = 3"
+                + "compressor = SNAPPY, 'MAX_POINT_NUMBER' = '3'"
           };
 
       for (String sql : insertSqls) {
@@ -595,7 +595,7 @@ public class IoTDBMetadataFetchIT {
     try (Connection connection = EnvFactory.getEnv().getConnection();
         Statement statement = connection.createStatement()) {
       statement.execute(
-          "create aligned timeseries root.sg.d(s1(alias1) int32 tags(tag1=v1, tag2=v2), s2 double attributes(attr3=v3))");
+          "create aligned timeseries root.sg.d(s1(alias1) int32 tags('tag1'='v1', 'tag2'='v2'), s2 double attributes('attr3'='v3'))");
       String[] expected =
           new String[] {
             "root.sg.d.s1,alias1,root.sg,INT32,RLE,SNAPPY,{\"tag1\":\"v1\",\"tag2\":\"v2\"},null,",
@@ -617,6 +617,44 @@ public class IoTDBMetadataFetchIT {
         }
       }
       Assert.assertEquals(2, num);
+    }
+  }
+
+  @Test
+  @Category({LocalStandaloneTest.class, ClusterTest.class, RemoteTest.class})
+  public void showLatestTimeseriesTest() throws SQLException {
+    try (Connection connection = EnvFactory.getEnv().getConnection();
+        Statement statement = connection.createStatement()) {
+
+      statement.execute("insert into root.ln.wf01.wt01(time, status) values(1, 1)");
+      statement.execute("insert into root.ln.wf01.wt01(time, temperature) values(2, 1)");
+      String sql = "show latest timeseries root.ln.wf01.wt01.*";
+      Set<String> standard =
+          new HashSet<>(
+              Arrays.asList(
+                  "root.ln.wf01.wt01.temperature,null,root.ln.wf01.wt01,FLOAT,RLE,SNAPPY,null,null,",
+                  "root.ln.wf01.wt01.status,null,root.ln.wf01.wt01,BOOLEAN,PLAIN,SNAPPY,null,null,"));
+      try {
+        boolean hasResultSet = statement.execute(sql);
+        if (hasResultSet) {
+          try (ResultSet resultSet = statement.getResultSet()) {
+            ResultSetMetaData resultSetMetaData = resultSet.getMetaData();
+            while (resultSet.next()) {
+              StringBuilder builder = new StringBuilder();
+              for (int i = 1; i <= resultSetMetaData.getColumnCount(); i++) {
+                builder.append(resultSet.getString(i)).append(",");
+              }
+              String string = builder.toString();
+              Assert.assertTrue(standard.contains(string));
+              standard.remove(string);
+            }
+            assertEquals(0, standard.size());
+          }
+        }
+      } catch (SQLException e) {
+        logger.error("showTimeseriesTest() failed", e);
+        fail(e.getMessage());
+      }
     }
   }
 }

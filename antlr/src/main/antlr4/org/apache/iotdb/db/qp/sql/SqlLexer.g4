@@ -362,6 +362,30 @@ PATHS
     : P A T H S
     ;
 
+PIPE
+    : P I P E
+    ;
+
+PIPES
+    : P I P E S
+    ;
+
+PIPESERVER
+    : P I P E S E R V E R
+    ;
+
+PIPESINK
+    : P I P E S I N K
+    ;
+
+PIPESINKS
+    : P I P E S I N K S
+    ;
+
+PIPESINKTYPE
+    : P I P E S I N K T Y P E
+    ;
+
 PREVIOUS
     : P R E V I O U S
     ;
@@ -947,11 +971,7 @@ ID
     : NAME_CHAR+
     ;
 
-QUTOED_ID_IN_NODE_NAME
-    : BQUOTA_STRING_IN_NODE_NAME
-    ;
-
-QUTOED_ID
+QUOTED_ID
     : BQUOTA_STRING
     ;
 
@@ -974,20 +994,17 @@ fragment CN_CHAR
     ;
 
 fragment DQUOTA_STRING
-    : '"' ( '\\'. | ~('"'| '\\') )* '"'
+    : '"' ( '\\'. | '""' | ~('"'| '\\') )* '"'
     ;
 
 fragment SQUOTA_STRING
-    : '\'' ( '\\'. | ~('\''| '\\') )* '\''
+    : '\'' ( '\\'. | '\'\'' |~('\''| '\\') )* '\''
     ;
 
 fragment BQUOTA_STRING
-    : '`' ( '\\'. | ~('`'| '\\') )* '`'
+    : '`' ( '\\' ~('`') | '``' | ~('`'| '\\') )* '`'
     ;
 
-fragment BQUOTA_STRING_IN_NODE_NAME
-    : '`' ( '\\' ('`'|'\\'|'\''|'"') | ~('`'|'\\'|'.'|'\''|'"'))* '`'
-    ;
 
 // Characters and write it this way for case sensitivity
 

@@ -19,7 +19,12 @@
 package org.apache.iotdb.tsfile.read.controller;
 
 import org.apache.iotdb.tsfile.common.cache.LRUCache;
-import org.apache.iotdb.tsfile.file.metadata.*;
+import org.apache.iotdb.tsfile.file.metadata.AlignedTimeSeriesMetadata;
+import org.apache.iotdb.tsfile.file.metadata.ChunkMetadata;
+import org.apache.iotdb.tsfile.file.metadata.IChunkMetadata;
+import org.apache.iotdb.tsfile.file.metadata.ITimeSeriesMetadata;
+import org.apache.iotdb.tsfile.file.metadata.TimeseriesMetadata;
+import org.apache.iotdb.tsfile.file.metadata.TsFileMetadata;
 import org.apache.iotdb.tsfile.file.metadata.enums.TSDataType;
 import org.apache.iotdb.tsfile.read.TsFileSequenceReader;
 import org.apache.iotdb.tsfile.read.TsFileSequenceReader.LocateStatus;
@@ -27,8 +32,16 @@ import org.apache.iotdb.tsfile.read.common.Path;
 import org.apache.iotdb.tsfile.read.common.TimeRange;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
+import java.util.TreeMap;
 
 public class MetadataQuerierByFileImpl implements IMetadataQuerier {
 
@@ -83,10 +96,10 @@ public class MetadataQuerierByFileImpl implements IMetadataQuerier {
     // group measurements by device
     TreeMap<String, Set<String>> deviceMeasurementsMap = new TreeMap<>();
     for (Path path : paths) {
-      if (!deviceMeasurementsMap.containsKey(path.getDevice())) {
-        deviceMeasurementsMap.put(path.getDevice(), new HashSet<>());
+      if (!deviceMeasurementsMap.containsKey(path.getDeviceIdString())) {
+        deviceMeasurementsMap.put(path.getDeviceIdString(), new HashSet<>());
       }
-      deviceMeasurementsMap.get(path.getDevice()).add(path.getMeasurement());
+      deviceMeasurementsMap.get(path.getDeviceIdString()).add(path.getMeasurement());
     }
     int count = 0;
     boolean enough = false;
@@ -159,7 +172,7 @@ public class MetadataQuerierByFileImpl implements IMetadataQuerier {
     TreeMap<String, Set<String>> deviceMeasurementsMap = new TreeMap<>();
     for (Path path : paths) {
       deviceMeasurementsMap
-          .computeIfAbsent(path.getDevice(), key -> new HashSet<>())
+          .computeIfAbsent(path.getDeviceIdString(), key -> new HashSet<>())
           .add(path.getMeasurement());
     }
     for (Map.Entry<String, Set<String>> deviceMeasurements : deviceMeasurementsMap.entrySet()) {

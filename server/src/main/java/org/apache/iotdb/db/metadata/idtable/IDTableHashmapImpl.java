@@ -19,11 +19,12 @@
 
 package org.apache.iotdb.db.metadata.idtable;
 
+import org.apache.iotdb.commons.exception.MetadataException;
+import org.apache.iotdb.commons.path.PartialPath;
 import org.apache.iotdb.commons.utils.TestOnly;
 import org.apache.iotdb.db.conf.IoTDBConfig;
 import org.apache.iotdb.db.conf.IoTDBDescriptor;
 import org.apache.iotdb.db.exception.metadata.DataTypeMismatchException;
-import org.apache.iotdb.db.exception.metadata.MetadataException;
 import org.apache.iotdb.db.metadata.idtable.entry.DeviceEntry;
 import org.apache.iotdb.db.metadata.idtable.entry.DeviceIDFactory;
 import org.apache.iotdb.db.metadata.idtable.entry.IDeviceID;
@@ -31,15 +32,11 @@ import org.apache.iotdb.db.metadata.idtable.entry.InsertMeasurementMNode;
 import org.apache.iotdb.db.metadata.idtable.entry.SchemaEntry;
 import org.apache.iotdb.db.metadata.idtable.entry.TimeseriesID;
 import org.apache.iotdb.db.metadata.mnode.IMeasurementMNode;
-import org.apache.iotdb.db.metadata.path.PartialPath;
+import org.apache.iotdb.db.metadata.schemaregion.SchemaRegionUtils;
 import org.apache.iotdb.db.qp.physical.crud.InsertPlan;
-import org.apache.iotdb.db.qp.physical.crud.InsertRowPlan;
-import org.apache.iotdb.db.qp.physical.crud.InsertTabletPlan;
 import org.apache.iotdb.db.qp.physical.sys.CreateAlignedTimeSeriesPlan;
 import org.apache.iotdb.db.qp.physical.sys.CreateTimeSeriesPlan;
 import org.apache.iotdb.db.service.IoTDB;
-import org.apache.iotdb.db.utils.TypeInferenceUtils;
-import org.apache.iotdb.tsfile.file.metadata.enums.TSDataType;
 import org.apache.iotdb.tsfile.read.TimeValuePair;
 import org.apache.iotdb.tsfile.write.schema.IMeasurementSchema;
 import org.apache.iotdb.tsfile.write.schema.MeasurementSchema;
@@ -117,7 +114,8 @@ public class IDTableHashmapImpl implements IDTable {
    * @throws MetadataException if the device is aligned, throw it
    */
   public synchronized void createTimeseries(CreateTimeSeriesPlan plan) throws MetadataException {
-    DeviceEntry deviceEntry = getDeviceEntryWithAlignedCheck(plan.getPath().getDevice(), false);
+    DeviceEntry deviceEntry =
+        getDeviceEntryWithAlignedCheck(plan.getPath().getDeviceIdString(), false);
     SchemaEntry schemaEntry =
         new SchemaEntry(
             plan.getDataType(),
@@ -154,9 +152,10 @@ public class IDTableHashmapImpl implements IDTable {
           IMeasurementMNode measurementMNode =
               getOrCreateMeasurementIfNotExist(deviceEntry, plan, i);
 
-          checkDataTypeMatch(plan, i, measurementMNode.getSchema().getType());
+          SchemaRegionUtils.checkDataTypeMatch(plan, i, measurementMNode.getSchema().getType());
           measurementMNodes[i] = measurementMNode;
         } catch (DataTypeMismatchException mismatchException) {
+          logger.warn(mismatchException.getMessage());
           if (!config.isEnablePartialInsert()) {
             throw mismatchException;
           } else {
@@ -205,7 +204,8 @@ public class IDTableHashmapImpl implements IDTable {
   public synchronized void registerTrigger(PartialPath fullPath, IMeasurementMNode measurementMNode)
       throws MetadataException {
     boolean isAligned = measurementMNode.getParent().isAligned();
-    DeviceEntry deviceEntry = getDeviceEntryWithAlignedCheck(fullPath.getDevice(), isAligned);
+    DeviceEntry deviceEntry =
+        getDeviceEntryWithAlignedCheck(fullPath.getDeviceIdString(), isAligned);
 
     deviceEntry.getSchemaEntry(fullPath.getMeasurement()).setUsingTrigger();
   }
@@ -220,7 +220,8 @@ public class IDTableHashmapImpl implements IDTable {
   public synchronized void deregisterTrigger(
       PartialPath fullPath, IMeasurementMNode measurementMNode) throws MetadataException {
     boolean isAligned = measurementMNode.getParent().isAligned();
-    DeviceEntry deviceEntry = getDeviceEntryWithAlignedCheck(fullPath.getDevice(), isAligned);
+    DeviceEntry deviceEntry =
+        getDeviceEntryWithAlignedCheck(fullPath.getDeviceIdString(), isAligned);
 
     deviceEntry.getSchemaEntry(fullPath.getMeasurement()).setUnUsingTrigger();
   }
@@ -452,48 +453,6 @@ public class IDTableHashmapImpl implements IDTable {
     }
 
     return schemaEntry;
-  }
-
-  // from mmanger
-  private void checkDataTypeMatch(InsertPlan plan, int loc, TSDataType dataType)
-      throws MetadataException {
-    TSDataType insertDataType;
-    if (plan instanceof InsertRowPlan) {
-      if (!((InsertRowPlan) plan).isNeedInferType()) {
-        // only when InsertRowPlan's values is object[], we should check type
-        insertDataType = getTypeInLoc(plan, loc);
-      } else {
-        insertDataType = dataType;
-      }
-    } else {
-      insertDataType = getTypeInLoc(plan, loc);
-    }
-    if (dataType != insertDataType) {
-      String measurement = plan.getMeasurements()[loc];
-      logger.warn(
-          "DataType mismatch, Insert measurement {} type {}, metadata tree type {}",
-          measurement,
-          insertDataType,
-          dataType);
-      throw new DataTypeMismatchException(measurement, insertDataType, dataType);
-    }
-  }
-
-  /** get dataType of plan, in loc measurements only support InsertRowPlan and InsertTabletPlan */
-  private TSDataType getTypeInLoc(InsertPlan plan, int loc) throws MetadataException {
-    TSDataType dataType;
-    if (plan instanceof InsertRowPlan) {
-      InsertRowPlan tPlan = (InsertRowPlan) plan;
-      dataType =
-          TypeInferenceUtils.getPredictedDataType(tPlan.getValues()[loc], tPlan.isNeedInferType());
-    } else if (plan instanceof InsertTabletPlan) {
-      dataType = (plan).getDataTypes()[loc];
-    } else {
-      throw new MetadataException(
-          String.format(
-              "Only support insert and insertTablet, plan is [%s]", plan.getOperatorType()));
-    }
-    return dataType;
   }
 
   @TestOnly

@@ -19,6 +19,7 @@
 package org.apache.iotdb.db.engine.storagegroup.dataregion;
 
 import org.apache.iotdb.commons.concurrent.ThreadName;
+import org.apache.iotdb.commons.path.PartialPath;
 import org.apache.iotdb.db.engine.StorageEngine;
 import org.apache.iotdb.db.engine.storagegroup.DataRegion;
 import org.apache.iotdb.db.engine.storagegroup.DataRegion.TimePartitionFilter;
@@ -29,7 +30,6 @@ import org.apache.iotdb.db.exception.StorageEngineException;
 import org.apache.iotdb.db.exception.StorageGroupNotReadyException;
 import org.apache.iotdb.db.exception.TsFileProcessorException;
 import org.apache.iotdb.db.metadata.mnode.IStorageGroupMNode;
-import org.apache.iotdb.db.metadata.path.PartialPath;
 import org.apache.iotdb.db.utils.ThreadUtils;
 import org.apache.iotdb.rpc.TSStatusCode;
 import org.apache.iotdb.tsfile.utils.Pair;
@@ -37,6 +37,7 @@ import org.apache.iotdb.tsfile.utils.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -451,6 +452,15 @@ public class StorageGroupManager {
         res.put(storageGroupName, partitionIdList);
       }
     }
+  }
+
+  /** collect all tsfiles whose memtable == null for sync */
+  public List<File> collectHistoryTsFileForSync(long dataStartTime) {
+    List<File> historyTsFiles = new ArrayList<>();
+    for (DataRegion processor : this.dataRegion) {
+      historyTsFiles.addAll(processor.collectHistoryTsFileForSync(dataStartTime));
+    }
+    return historyTsFiles;
   }
 
   /** only for test */

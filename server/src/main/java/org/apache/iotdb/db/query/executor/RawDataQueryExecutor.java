@@ -18,6 +18,7 @@
  */
 package org.apache.iotdb.db.query.executor;
 
+import org.apache.iotdb.commons.path.PartialPath;
 import org.apache.iotdb.db.engine.StorageEngine;
 import org.apache.iotdb.db.engine.querycontext.QueryDataSource;
 import org.apache.iotdb.db.engine.storagegroup.DataRegion;
@@ -25,7 +26,6 @@ import org.apache.iotdb.db.exception.StorageEngineException;
 import org.apache.iotdb.db.exception.query.QueryProcessException;
 import org.apache.iotdb.db.metadata.path.AlignedPath;
 import org.apache.iotdb.db.metadata.path.MeasurementPath;
-import org.apache.iotdb.db.metadata.path.PartialPath;
 import org.apache.iotdb.db.qp.physical.crud.RawDataQueryPlan;
 import org.apache.iotdb.db.query.context.QueryContext;
 import org.apache.iotdb.db.query.control.QueryResourceManager;
@@ -48,7 +48,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.apache.iotdb.tsfile.read.query.executor.ExecutorWithTimeGenerator.markFilterdPaths;
@@ -136,7 +141,7 @@ public class RawDataQueryExecutor {
         ManagedSeriesReader reader =
             new SeriesRawDataBatchReader(
                 path,
-                queryPlan.getAllMeasurementsInDevice(path.getDevice()),
+                queryPlan.getAllMeasurementsInDevice(path.getDeviceIdString()),
                 dataType,
                 context,
                 queryDataSource,
@@ -273,7 +278,7 @@ public class RawDataQueryExecutor {
       IReaderByTimestamp seriesReaderByTimestamp =
           getReaderByTimestamp(
               path,
-              queryPlan.getAllMeasurementsInDevice(path.getDevice()),
+              queryPlan.getAllMeasurementsInDevice(path.getDeviceIdString()),
               queryPlan.getDeduplicatedDataTypes().get(i),
               context);
       readersOfSelectedSeries.add(seriesReaderByTimestamp);

@@ -18,11 +18,11 @@
  */
 package org.apache.iotdb.db.metadata.storagegroup;
 
-import org.apache.iotdb.db.exception.metadata.MetadataException;
+import org.apache.iotdb.commons.exception.MetadataException;
+import org.apache.iotdb.commons.path.PartialPath;
 import org.apache.iotdb.db.exception.metadata.StorageGroupNotSetException;
 import org.apache.iotdb.db.metadata.LocalSchemaProcessor;
 import org.apache.iotdb.db.metadata.mnode.IStorageGroupMNode;
-import org.apache.iotdb.db.metadata.path.PartialPath;
 import org.apache.iotdb.tsfile.utils.Pair;
 
 import java.io.IOException;
@@ -45,6 +45,14 @@ public interface IStorageGroupSchemaManager {
    * @param path storage group path
    */
   void setStorageGroup(PartialPath path) throws MetadataException;
+
+  /**
+   * different with LocalConfigNode.ensureStorageGroup, this method won't init storageGroup
+   * resources.
+   *
+   * @param path storage group path
+   */
+  void ensureStorageGroup(PartialPath path) throws MetadataException;
 
   /**
    * Delete storage groups of given paths from MTree. Log format: "delete_storage_group,sg1,sg2,sg3"

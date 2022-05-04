@@ -19,8 +19,6 @@
 
 package org.apache.iotdb.tsfile.utils;
 
-import org.eclipse.collections.impl.list.mutable.primitive.ByteArrayList;
-
 public class BitConstructor {
 
   private static final int BITS_IN_A_BYTE = 8;
@@ -85,8 +83,8 @@ public class BitConstructor {
     if (cnt == 0) {
       data.addAll(bytes);
     } else {
-      for (int i = 0; i < bytes.length; i++) {
-        add(bytes[i], 8);
+      for (byte aByte : bytes) {
+        add(aByte, 8);
       }
     }
   }

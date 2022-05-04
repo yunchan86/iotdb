@@ -18,23 +18,26 @@
  */
 package org.apache.iotdb.db.metadata;
 
+import org.apache.iotdb.commons.consensus.SchemaRegionId;
+import org.apache.iotdb.commons.exception.MetadataException;
+import org.apache.iotdb.commons.path.PartialPath;
 import org.apache.iotdb.commons.utils.TestOnly;
 import org.apache.iotdb.db.conf.IoTDBConfig;
 import org.apache.iotdb.db.conf.IoTDBDescriptor;
 import org.apache.iotdb.db.exception.metadata.AliasAlreadyExistException;
-import org.apache.iotdb.db.exception.metadata.MetadataException;
 import org.apache.iotdb.db.exception.metadata.PathAlreadyExistException;
 import org.apache.iotdb.db.exception.metadata.PathNotExistException;
 import org.apache.iotdb.db.exception.metadata.StorageGroupNotSetException;
 import org.apache.iotdb.db.exception.metadata.template.UndefinedTemplateException;
+import org.apache.iotdb.db.localconfignode.LocalConfigNode;
 import org.apache.iotdb.db.metadata.lastCache.LastCacheManager;
 import org.apache.iotdb.db.metadata.mnode.IMNode;
 import org.apache.iotdb.db.metadata.mnode.IMeasurementMNode;
 import org.apache.iotdb.db.metadata.mnode.IStorageGroupMNode;
 import org.apache.iotdb.db.metadata.path.MeasurementPath;
-import org.apache.iotdb.db.metadata.path.PartialPath;
 import org.apache.iotdb.db.metadata.rescon.TimeseriesStatistics;
 import org.apache.iotdb.db.metadata.schemaregion.ISchemaRegion;
+import org.apache.iotdb.db.metadata.schemaregion.SchemaEngine;
 import org.apache.iotdb.db.metadata.template.Template;
 import org.apache.iotdb.db.metadata.template.TemplateManager;
 import org.apache.iotdb.db.qp.constant.SQLConstant;
@@ -67,14 +70,12 @@ import org.apache.iotdb.tsfile.file.metadata.enums.TSEncoding;
 import org.apache.iotdb.tsfile.read.TimeValuePair;
 import org.apache.iotdb.tsfile.utils.Pair;
 import org.apache.iotdb.tsfile.write.schema.IMeasurementSchema;
-import org.apache.iotdb.tsfile.write.schema.TimeseriesSchema;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -129,7 +130,8 @@ public class LocalSchemaProcessor {
 
   protected static IoTDBConfig config = IoTDBDescriptor.getInstance().getConfig();
 
-  private LocalConfigManager configManager = LocalConfigManager.getInstance();
+  private LocalConfigNode configManager = LocalConfigNode.getInstance();
+  private SchemaEngine schemaEngine = SchemaEngine.getInstance();
 
   // region SchemaProcessor Singleton
   private static class LocalSchemaProcessorHolder {
@@ -159,13 +161,14 @@ public class LocalSchemaProcessor {
    * thrown.
    */
   private ISchemaRegion getBelongedSchemaRegion(PartialPath path) throws MetadataException {
-    return configManager.getBelongedSchemaRegion(path);
+    return schemaEngine.getSchemaRegion(configManager.getBelongedSchemaRegionId(path));
   }
 
   // This interface involves storage group auto creation
   private ISchemaRegion getBelongedSchemaRegionWithAutoCreate(PartialPath path)
       throws MetadataException {
-    return configManager.getBelongedSchemaRegionWithAutoCreate(path);
+    return schemaEngine.getSchemaRegion(
+        configManager.getBelongedSchemaRegionIdWithAutoCreate(path));
   }
 
   /**
@@ -176,12 +179,24 @@ public class LocalSchemaProcessor {
    */
   private List<ISchemaRegion> getInvolvedSchemaRegions(
       PartialPath pathPattern, boolean isPrefixMatch) throws MetadataException {
-    return configManager.getInvolvedSchemaRegions(pathPattern, isPrefixMatch);
+    List<SchemaRegionId> schemaRegionIds =
+        configManager.getInvolvedSchemaRegionIds(pathPattern, isPrefixMatch);
+    List<ISchemaRegion> schemaRegions = new ArrayList<>();
+    for (SchemaRegionId schemaRegionId : schemaRegionIds) {
+      schemaRegions.add(schemaEngine.getSchemaRegion(schemaRegionId));
+    }
+    return schemaRegions;
   }
 
   private List<ISchemaRegion> getSchemaRegionsByStorageGroup(PartialPath storageGroup)
       throws MetadataException {
-    return configManager.getSchemaRegionsByStorageGroup(storageGroup);
+    List<SchemaRegionId> schemaRegionIds =
+        configManager.getSchemaRegionIdsByStorageGroup(storageGroup);
+    List<ISchemaRegion> schemaRegions = new ArrayList<>();
+    for (SchemaRegionId schemaRegionId : schemaRegionIds) {
+      schemaRegions.add(schemaEngine.getSchemaRegion(schemaRegionId));
+    }
+    return schemaRegions;
   }
 
   // endregion
@@ -380,7 +395,7 @@ public class LocalSchemaProcessor {
    * @param storageGroup root.node.(node)*
    */
   public void setStorageGroup(PartialPath storageGroup) throws MetadataException {
-    configManager.setStorageGroup(storageGroup, true);
+    configManager.setStorageGroup(storageGroup);
   }
 
   /**
@@ -705,7 +720,11 @@ public class LocalSchemaProcessor {
    * @return A HashSet instance which stores devices paths.
    */
   public Set<PartialPath> getBelongedDevices(PartialPath timeseries) throws MetadataException {
-    return getBelongedSchemaRegion(timeseries).getBelongedDevices(timeseries);
+    Set<PartialPath> result = new TreeSet<>();
+    for (ISchemaRegion schemaRegion : getInvolvedSchemaRegions(timeseries, false)) {
+      result.addAll(schemaRegion.getBelongedDevices(timeseries));
+    }
+    return result;
   }
 
   /**
@@ -931,11 +950,6 @@ public class LocalSchemaProcessor {
     return getBelongedSchemaRegion(path).getDeviceNode(path);
   }
 
-  public IMeasurementMNode[] getMeasurementMNodes(PartialPath deviceId, String[] measurements)
-      throws MetadataException {
-    return getBelongedSchemaRegion(deviceId).getMeasurementMNodes(deviceId, measurements);
-  }
-
   public IMeasurementMNode getMeasurementMNode(PartialPath fullPath) throws MetadataException {
     try {
       return getBelongedSchemaRegion(fullPath).getMeasurementMNode(fullPath);
@@ -1051,38 +1065,6 @@ public class LocalSchemaProcessor {
   // endregion
 
   // region Interfaces only for Cluster module usage
-
-  /**
-   * Collect the timeseries schemas as IMeasurementSchema under "prefixPath".
-   *
-   * @apiNote :for cluster
-   */
-  public void collectMeasurementSchema(
-      PartialPath prefixPath, List<IMeasurementSchema> measurementSchemas) {
-    try {
-      for (ISchemaRegion schemaRegion : getInvolvedSchemaRegions(prefixPath, true)) {
-        schemaRegion.collectMeasurementSchema(prefixPath, measurementSchemas);
-      }
-    } catch (MetadataException ignored) {
-      // do nothing
-    }
-  }
-
-  /**
-   * Collect the timeseries schemas as TimeseriesSchema under "prefixPath".
-   *
-   * @apiNote :for cluster
-   */
-  public void collectTimeseriesSchema(
-      PartialPath prefixPath, Collection<TimeseriesSchema> timeseriesSchemas) {
-    try {
-      for (ISchemaRegion schemaRegion : getInvolvedSchemaRegions(prefixPath, true)) {
-        schemaRegion.collectTimeseriesSchema(prefixPath, timeseriesSchemas);
-      }
-    } catch (MetadataException ignored) {
-      // do nothing
-    }
-  }
 
   /**
    * For a path, infer all storage groups it may belong to. The path can have wildcards. Resolve the
@@ -1277,16 +1259,14 @@ public class LocalSchemaProcessor {
   @SuppressWarnings("squid:S3776") // Suppress high Cognitive Complexity warning
   public IMNode getSeriesSchemasAndReadLockDevice(InsertPlan plan)
       throws MetadataException, IOException {
-    try {
-      return getBelongedSchemaRegion(plan.getDevicePath()).getSeriesSchemasAndReadLockDevice(plan);
-    } catch (StorageGroupNotSetException e) {
-      if (config.isAutoCreateSchemaEnabled()) {
-        return getBelongedSchemaRegionWithAutoCreate(plan.getDevicePath())
-            .getSeriesSchemasAndReadLockDevice(plan);
-      } else {
-        throw e;
-      }
+    ISchemaRegion schemaRegion;
+    if (config.isAutoCreateSchemaEnabled()) {
+      schemaRegion = getBelongedSchemaRegionWithAutoCreate(plan.getDevicePath());
+    } else {
+      schemaRegion = getBelongedSchemaRegion(plan.getDevicePath());
     }
+
+    return schemaRegion.getSeriesSchemasAndReadLockDevice(plan);
   }
 
   // endregion
@@ -1371,19 +1351,16 @@ public class LocalSchemaProcessor {
 
   // region Interfaces for Trigger
 
-  public IMeasurementMNode getMeasurementMNodeForTrigger(PartialPath fullPath)
-      throws MetadataException {
+  public IMNode getMNodeForTrigger(PartialPath fullPath) throws MetadataException {
     try {
-      return getBelongedSchemaRegion(fullPath).getMeasurementMNodeForTrigger(fullPath);
+      return getBelongedSchemaRegion(fullPath).getMNodeForTrigger(fullPath);
     } catch (StorageGroupNotSetException e) {
       throw new PathNotExistException(fullPath.getFullPath());
     }
   }
 
-  public void releaseMeasurementMNodeAfterDropTrigger(IMeasurementMNode measurementMNode)
-      throws MetadataException {
-    getBelongedSchemaRegion(measurementMNode.getPartialPath())
-        .releaseMeasurementMNodeAfterDropTrigger(measurementMNode);
+  public void releaseMNodeAfterDropTrigger(IMNode imNode) throws MetadataException {
+    getBelongedSchemaRegion(imNode.getPartialPath()).releaseMNodeAfterDropTrigger(imNode);
   }
 
   // endregion

@@ -49,11 +49,12 @@ import org.apache.iotdb.cluster.rpc.thrift.SingleSeriesQueryRequest;
 import org.apache.iotdb.cluster.server.member.DataGroupMember;
 import org.apache.iotdb.cluster.server.member.MetaGroupMember;
 import org.apache.iotdb.cluster.utils.ClusterQueryUtils;
+import org.apache.iotdb.commons.path.PartialPath;
 import org.apache.iotdb.db.engine.querycontext.QueryDataSource;
 import org.apache.iotdb.db.exception.StorageEngineException;
 import org.apache.iotdb.db.exception.query.QueryProcessException;
 import org.apache.iotdb.db.metadata.path.MeasurementPath;
-import org.apache.iotdb.db.metadata.path.PartialPath;
+import org.apache.iotdb.db.metadata.utils.ResourceByPathUtils;
 import org.apache.iotdb.db.query.aggregation.AggregationType;
 import org.apache.iotdb.db.query.context.QueryContext;
 import org.apache.iotdb.db.query.control.QueryResourceManager;
@@ -276,7 +277,8 @@ public class ClusterReaderFactory {
       partialPaths.forEach(
           partialPath -> {
             Set<String> measurements =
-                deviceMeasurements.getOrDefault(partialPath.getDevice(), Collections.emptySet());
+                deviceMeasurements.getOrDefault(
+                    partialPath.getDeviceIdString(), Collections.emptySet());
             partitionGroupDeviceMeasurements.put(partialPath.getFullPath(), measurements);
             partitionGroupTSDataType.add(dataTypes.get(paths.lastIndexOf(partialPath)));
           });
@@ -555,15 +557,16 @@ public class ClusterReaderFactory {
     QueryDataSource queryDataSource =
         QueryResourceManager.getInstance().getQueryDataSource(path, context, timeFilter, ascending);
     valueFilter = queryDataSource.updateFilterUsingTTL(valueFilter);
-    return path.createSeriesReader(
-        allSensors,
-        dataType,
-        context,
-        queryDataSource,
-        timeFilter,
-        valueFilter,
-        new SlotTsFileFilter(requiredSlots),
-        ascending);
+    return ResourceByPathUtils.getResourceInstance(path)
+        .createSeriesReader(
+            allSensors,
+            dataType,
+            context,
+            queryDataSource,
+            timeFilter,
+            valueFilter,
+            new SlotTsFileFilter(requiredSlots),
+            ascending);
   }
 
   /**

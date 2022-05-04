@@ -19,8 +19,8 @@
 
 package org.apache.iotdb.db.query.expression;
 
+import org.apache.iotdb.commons.path.PartialPath;
 import org.apache.iotdb.db.exception.query.LogicalOptimizeException;
-import org.apache.iotdb.db.metadata.path.PartialPath;
 import org.apache.iotdb.db.qp.utils.WildcardsRemover;
 import org.apache.iotdb.tsfile.file.metadata.enums.TSDataType;
 import org.apache.iotdb.tsfile.utils.ReadWriteIOUtils;
@@ -85,6 +85,12 @@ public class ResultColumn {
   public ResultColumn(Expression expression) {
     this.expression = expression;
     alias = null;
+  }
+
+  public ResultColumn(ByteBuffer byteBuffer) {
+    expression = Expression.deserialize(byteBuffer);
+    alias = ReadWriteIOUtils.readString(byteBuffer);
+    dataType = TSDataType.deserializeFrom(byteBuffer);
   }
 
   /**
@@ -189,18 +195,13 @@ public class ResultColumn {
     return getResultColumnName().equals(((ResultColumn) o).getResultColumnName());
   }
 
-  public void serialize(ByteBuffer byteBuffer) {
-    expression.serialize(byteBuffer);
-    ReadWriteIOUtils.write(alias, byteBuffer);
-    dataType.serializeTo(byteBuffer);
+  public static void serialize(ResultColumn resultColumn, ByteBuffer byteBuffer) {
+    Expression.serialize(resultColumn.expression, byteBuffer);
+    ReadWriteIOUtils.write(resultColumn.alias, byteBuffer);
+    resultColumn.dataType.serializeTo(byteBuffer);
   }
 
   public static ResultColumn deserialize(ByteBuffer byteBuffer) {
-    Expression expression = ExpressionType.deserialize(byteBuffer);
-    String alias = ReadWriteIOUtils.readString(byteBuffer);
-    TSDataType tsDataType = TSDataType.deserializeFrom(byteBuffer);
-    ResultColumn resultColumn = new ResultColumn(expression, alias);
-    resultColumn.dataType = tsDataType;
-    return resultColumn;
+    return new ResultColumn(byteBuffer);
   }
 }
