@@ -8,6 +8,7 @@ on:
       - master
       - 'rel/*'
       - "new_*"
+      - py_debug
     paths-ignore:
       - 'docs/**'
   pull_request:
