@@ -51,6 +51,10 @@ public class VirtualStorageGroupManager {
   /** virtual storage group partitioner */
   VirtualPartitioner partitioner = HashVirtualPartitioner.getInstance();
 
+  public StorageGroupProcessor[] getVirtualStorageGroupProcessor() {
+    return virtualStorageGroupProcessor;
+  }
+
   /** all virtual storage group processor */
   StorageGroupProcessor[] virtualStorageGroupProcessor;
 

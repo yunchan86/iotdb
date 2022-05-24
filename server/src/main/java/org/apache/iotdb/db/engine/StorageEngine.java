@@ -259,6 +259,21 @@ public class StorageEngine implements IService {
     }
     recoveryThreadPool.shutdown();
     setAllSgReady(true);
+    for (VirtualStorageGroupManager manager : processorMap.values()) {
+      for (StorageGroupProcessor processor : manager.getVirtualStorageGroupProcessor()) {
+        for (TsFileResource resource : processor.getFilesToBeLoaded()) {
+          try {
+            resource.deserialize();
+            loadNewTsFile(resource);
+            logger.warn("Auto load tsfile {}", resource);
+          } catch (Exception e) {
+            logger.error("load tsfile {} error", resource, e);
+          }
+        }
+        processor.getFilesToBeLoaded().clear();
+      }
+    }
+    logger.info("auto load tsfiles finished");
   }
 
   /**

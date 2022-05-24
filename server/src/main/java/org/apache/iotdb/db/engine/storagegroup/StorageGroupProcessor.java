@@ -96,6 +96,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -270,6 +271,14 @@ public class StorageGroupProcessor {
   private volatile boolean compacting = false;
 
   private ScheduledExecutorService walTrimScheduleTask;
+
+  private Set<Long> versionsSet = new HashSet<>();
+
+  public List<TsFileResource> getFilesToBeLoaded() {
+    return filesToBeLoaded;
+  }
+
+  private List<TsFileResource> filesToBeLoaded = new ArrayList<>();
 
   /**
    * get the direct byte buffer from pool, each fetch contains two ByteBuffer, return null if fetch
@@ -469,6 +478,7 @@ public class StorageGroupProcessor {
       for (List<TsFileResource> value : partitionTmpUnseqTsFiles.values()) {
         recoverTsFiles(value, false);
       }
+      versionsSet.clear();
 
       for (TsFileResource resource : tsFileManagement.getTsFileList(true)) {
         long partitionNum = resource.getTimePartition();
@@ -677,7 +687,14 @@ public class StorageGroupProcessor {
     for (int i = tsFiles.size() - 1; i >= 0; i--) {
       TsFileResource tsFileResource = tsFiles.get(i);
       long timePartitionId = tsFileResource.getTimePartition();
-
+      long versionNum = tsFileResource.getVersion();
+      if (versionsSet.contains(versionNum)) {
+        logger.warn("Version number of {} error", tsFileResource.getTsFilePath());
+        filesToBeLoaded.add(tsFileResource);
+        continue;
+      } else {
+        versionsSet.add(versionNum);
+      }
       TsFileRecoverPerformer recoverPerformer =
           new TsFileRecoverPerformer(
               logicalStorageGroupName
