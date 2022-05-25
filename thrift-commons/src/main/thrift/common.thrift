@@ -58,8 +58,9 @@ struct TRegionReplicaSet {
 }
 
 struct TConfigNodeLocation {
-  1: required TEndPoint internalEndPoint
-  2: required TEndPoint consensusEndPoint
+  1: required i32 configNodeId
+  2: required TEndPoint internalEndPoint
+  3: required TEndPoint consensusEndPoint
 }
 
 struct THeartbeatReq {
@@ -82,6 +83,12 @@ struct THeartbeatResp {
   1: required i64 heartbeatTimestamp
   2: optional i16 cpu
   3: optional i16 memory
+}
+
+struct TConfigNodeInfo {
+  1: required TConfigNodeLocation location
+  2: required i32 cpuCoreNum
+  3: required i64 maxMemory
 }
 
 struct TDataNodeInfo {

@@ -144,18 +144,19 @@ public class NodeUrlUtils {
   /**
    * Parse TConfigNodeLocation from given TConfigNodeUrl
    *
+   * @param configNodeId configNode id
    * @param configNodeUrl InternalEndPointUrl,ConsensusEndPointUrl
    * @return TConfigNodeLocation
    * @throws BadNodeUrlException Throw when unable to parse
    */
-  public static TConfigNodeLocation parseTConfigNodeUrl(String configNodeUrl)
+  public static TConfigNodeLocation parseTConfigNodeUrl(int configNodeId, String configNodeUrl)
       throws BadNodeUrlException {
     String[] split = configNodeUrl.split(",");
     if (split.length != 2) {
       logger.warn("Bad ConfigNode url: {}", configNodeUrl);
       throw new BadNodeUrlException(String.format("Bad node url: %s", configNodeUrl));
     }
-    return new TConfigNodeLocation(parseTEndPointUrl(split[0]), parseTEndPointUrl(split[1]));
+    return new TConfigNodeLocation(configNodeId, parseTEndPointUrl(split[0]), parseTEndPointUrl(split[1]));
   }
 
   /**
@@ -168,8 +169,9 @@ public class NodeUrlUtils {
   public static List<TConfigNodeLocation> parseTConfigNodeUrls(List<String> configNodeUrls)
       throws BadNodeUrlException {
     List<TConfigNodeLocation> result = new ArrayList<>();
+    int configNodeId = 0;
     for (String url : configNodeUrls) {
-      result.add(parseTConfigNodeUrl(url));
+      result.add(parseTConfigNodeUrl(configNodeId++, url));
     }
     return result;
   }

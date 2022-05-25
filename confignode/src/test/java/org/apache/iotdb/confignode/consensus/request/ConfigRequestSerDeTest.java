@@ -571,7 +571,7 @@ public class ConfigRequestSerDeTest {
   public void registerConfigNodeReqTest() throws IOException {
     ApplyConfigNodeReq req0 =
         new ApplyConfigNodeReq(
-            new TConfigNodeLocation(
+            new TConfigNodeLocation(0,
                 new TEndPoint("0.0.0.0", 22277), new TEndPoint("0.0.0.0", 22278)));
     req0.serialize(buffer);
     buffer.flip();

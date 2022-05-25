@@ -169,7 +169,7 @@ public class ConfigNodeStartupCheck {
       // TODO: Set PartitionRegionId from iotdb-confignode.properties
       conf.setConfigNodeList(
           Collections.singletonList(
-              new TConfigNodeLocation(
+              new TConfigNodeLocation(0,
                   new TEndPoint(conf.getRpcAddress(), conf.getRpcPort()),
                   new TEndPoint(conf.getRpcAddress(), conf.getConsensusPort()))));
     }
@@ -180,7 +180,7 @@ public class ConfigNodeStartupCheck {
   private void registerConfigNode() throws StartupException {
     TConfigNodeRegisterReq req =
         new TConfigNodeRegisterReq(
-            new TConfigNodeLocation(
+            new TConfigNodeLocation(0,
                 new TEndPoint(conf.getRpcAddress(), conf.getRpcPort()),
                 new TEndPoint(conf.getRpcAddress(), conf.getConsensusPort())),
             conf.getDataNodeConsensusProtocolClass(),
