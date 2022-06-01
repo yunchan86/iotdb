@@ -958,11 +958,20 @@ public class LocalExecutionPlanner {
         AggregationDescriptor descriptor, Map<String, List<InputLocation>> layout) {
       List<List<String>> inputColumnNames = descriptor.getInputColumnNamesList();
       List<InputLocation[]> inputLocationList = new ArrayList<>();
+
       for (List<String> inputColumnNamesOfOneInput : inputColumnNames) {
-        checkArgument(
-            inputColumnNamesOfOneInput.size() == 1 || inputColumnNamesOfOneInput.size() == 2);
-        for (String inputColumnName : inputColumnNamesOfOneInput) {
-          inputLocationList.add(layout.get(inputColumnName).toArray(new InputLocation[0]));
+        // it may include double parts
+        List<List<InputLocation>> inputLocationParts = new ArrayList<>();
+        inputColumnNamesOfOneInput.forEach(o -> inputLocationParts.add(layout.get(o)));
+        for (int i = 0; i < inputLocationParts.get(0).size(); i++) {
+          if (inputColumnNamesOfOneInput.size() == 1) {
+            inputLocationList.add(new InputLocation[] {inputLocationParts.get(0).get(i)});
+          } else {
+            inputLocationList.add(
+                new InputLocation[] {
+                  inputLocationParts.get(0).get(i), inputLocationParts.get(1).get(i)
+                });
+          }
         }
       }
       return inputLocationList;
