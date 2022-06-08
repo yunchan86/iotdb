@@ -116,6 +116,7 @@ public class SourceHandle implements ISourceHandle {
 
     TsBlock tsBlock;
     tsBlock = sequenceIdToTsBlock.remove(currSequenceId);
+    logger.info("{}: receive TsBlock. block size is: {}", this, tsBlock.getRetainedSizeInBytes());
     currSequenceId += 1;
     bufferRetainedSizeInBytes -= tsBlock.getRetainedSizeInBytes();
     localMemoryManager
@@ -205,10 +206,11 @@ public class SourceHandle implements ISourceHandle {
 
   synchronized void updatePendingDataBlockInfo(int startSequenceId, List<Long> dataBlockSizes) {
     logger.info(
-        "{}: receive newDataBlockEvent. [{}, {})",
+        "{}: receive newDataBlockEvent. [{}, {}), block size is: {}",
         this,
         startSequenceId,
-        startSequenceId + dataBlockSizes.size());
+        startSequenceId + dataBlockSizes.size(),
+        dataBlockSizes);
     for (int i = 0; i < dataBlockSizes.size(); i++) {
       sequenceIdToDataBlockSize.put(i + startSequenceId, dataBlockSizes.get(i));
     }
