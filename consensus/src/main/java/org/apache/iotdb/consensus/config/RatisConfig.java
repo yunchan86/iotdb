@@ -173,8 +173,8 @@ public class RatisConfig {
     }
 
     public static class Builder {
-      private TimeDuration timeoutMin = TimeDuration.valueOf(2, TimeUnit.SECONDS);
-      private TimeDuration timeoutMax = TimeDuration.valueOf(8, TimeUnit.SECONDS);
+      private TimeDuration timeoutMin = TimeDuration.valueOf(100, TimeUnit.MILLISECONDS);
+      private TimeDuration timeoutMax = TimeDuration.valueOf(300, TimeUnit.MILLISECONDS);
       private TimeDuration requestTimeout = TimeDuration.valueOf(20, TimeUnit.SECONDS);
       private TimeDuration sleepTime = TimeDuration.valueOf(1, TimeUnit.SECONDS);
       private TimeDuration slownessTimeout = TimeDuration.valueOf(10, TimeUnit.MINUTES);

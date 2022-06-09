@@ -158,12 +158,18 @@ public class InternalServiceImpl implements InternalService.Iface {
         if (groupId instanceof DataRegionId) {
           writeResponse = DataRegionConsensusImpl.getInstance().write(groupId, fragmentInstance);
         } else {
+          LOGGER.info("call consensus layer API");
           writeResponse = SchemaRegionConsensusImpl.getInstance().write(groupId, fragmentInstance);
         }
         // TODO need consider more status
-        response.setAccepted(
-            TSStatusCode.SUCCESS_STATUS.getStatusCode() == writeResponse.getStatus().getCode());
-        response.setMessage(writeResponse.getStatus().message);
+        if (writeResponse.getStatus() == null) {
+          LOGGER.error("error happened. ", writeResponse.getException());
+          response.setAccepted(false);
+        } else {
+          response.setAccepted(
+              TSStatusCode.SUCCESS_STATUS.getStatusCode() == writeResponse.getStatus().getCode());
+          response.setMessage(writeResponse.getStatus().message);
+        }
         return response;
     }
     return null;

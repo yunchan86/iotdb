@@ -168,8 +168,10 @@ class RatisConsensus implements IConsensus {
         buildRawRequest(raftGroupId, message, RaftClientRequest.writeRequestType());
     RaftClientReply localServerReply;
     RaftPeer suggestedLeader = null;
+    logger.info("trying to judge whether current node is leader and whether it is ready");
     if (isLeader(consensusGroupId) && waitUntilLeaderReady(raftGroupId)) {
       try {
+        logger.info("submit locally!");
         localServerReply = server.submitClientRequest(clientRequest);
         if (localServerReply.isSuccess()) {
           ResponseMessage responseMessage = (ResponseMessage) localServerReply.getMessage();
@@ -185,17 +187,25 @@ class RatisConsensus implements IConsensus {
       }
     }
 
+    logger.info("submit using raft client!");
     // 2. try raft client
     TSStatus writeResult;
     RatisClient client = null;
     try {
+      logger.info("trying to get raft client!");
       client = getRaftClient(raftGroup);
+      logger.info("trying to send message using raft client");
       RaftClientReply reply = client.getRaftClient().io().send(message);
+      logger.info("get result from raft client");
       if (!reply.isSuccess()) {
+        logger.info("result is not success", reply.getException());
         return failedWrite(new RatisRequestFailedException(reply.getException()));
       }
+      logger.info("result is success");
       writeResult = Utils.deserializeFrom(reply.getMessage().getContent().asReadOnlyByteBuffer());
+      logger.info("status is {}", writeResult);
     } catch (IOException | TException e) {
+      logger.info("exception found!", e);
       return failedWrite(new RatisRequestFailedException(e));
     } finally {
       if (client != null) {
@@ -208,6 +218,7 @@ class RatisConsensus implements IConsensus {
       writeResult.setRedirectNode(new TEndPoint(leaderEndPoint.getIp(), leaderEndPoint.getPort()));
     }
 
+    logger.info("successfully return");
     return ConsensusWriteResponse.newBuilder().setStatus(writeResult).build();
   }
 
@@ -477,6 +488,7 @@ class RatisConsensus implements IConsensus {
 
     boolean isLeader;
     try {
+      logger.info("trying to judge whether current node is leader from server");
       isLeader = server.getDivision(raftGroupId).getInfo().isLeader();
     } catch (IOException exception) {
       // if the query fails, simply return not leader
@@ -489,6 +501,7 @@ class RatisConsensus implements IConsensus {
   private boolean waitUntilLeaderReady(RaftGroupId groupId) {
     DivisionInfo divisionInfo;
     try {
+      logger.info("trying to get DivisionInfo from server");
       divisionInfo = server.getDivision(groupId).getInfo();
     } catch (IOException e) {
       // if the query fails, simply return not leader
@@ -500,6 +513,7 @@ class RatisConsensus implements IConsensus {
       while (divisionInfo.isLeader() && !divisionInfo.isLeaderReady()) {
         Thread.sleep(10);
         long consumedTime = System.currentTimeMillis() - startTime;
+        logger.info("trying to get DivisionInfo from server in while");
         if (consumedTime >= DEFAULT_WAIT_LEADER_READY_TIMEOUT) {
           logger.warn("{}: leader is still not ready after {}ms", groupId, consumedTime);
           return false;
