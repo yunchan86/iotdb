@@ -41,7 +41,7 @@ def print_message(message):
 
 
 def test_aligned_timeseries():
-    with IoTDBContainer("iotdb:dev") as db:
+    with IoTDBContainer("iotdb") as db:
         db: IoTDBContainer
         session = Session(db.get_container_host_ip(), db.get_exposed_port(6667))
         session.open(False)
