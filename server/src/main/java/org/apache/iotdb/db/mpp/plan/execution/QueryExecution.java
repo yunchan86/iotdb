@@ -113,6 +113,8 @@ public class QueryExecution implements IQueryExecution {
   private final IClientManager<TEndPoint, SyncDataNodeInternalServiceClient>
       internalServiceClientManager;
 
+  private long queryExecutionStartTime;
+
   public QueryExecution(
       Statement statement,
       MPPQueryContext context,
@@ -122,12 +124,15 @@ public class QueryExecution implements IQueryExecution {
       IPartitionFetcher partitionFetcher,
       ISchemaFetcher schemaFetcher,
       IClientManager<TEndPoint, SyncDataNodeInternalServiceClient> internalServiceClientManager) {
+    this.queryExecutionStartTime = System.nanoTime();
     this.executor = executor;
     this.writeOperationExecutor = writeOperationExecutor;
     this.scheduledExecutor = scheduledExecutor;
     this.context = context;
     this.planOptimizers = new ArrayList<>();
+    long startTime = System.nanoTime();
     this.analysis = analyze(statement, context, partitionFetcher, schemaFetcher);
+    StepTracker.trace("analyze", startTime, System.nanoTime());
     this.stateMachine = new QueryStateMachine(context.getQueryId(), executor);
     this.partitionFetcher = partitionFetcher;
     this.schemaFetcher = schemaFetcher;
@@ -339,28 +344,35 @@ public class QueryExecution implements IQueryExecution {
    * @return ExecutionStatus. Contains the QueryId and the TSStatus.
    */
   public ExecutionResult getStatus() {
-    // Although we monitor the state to transition to RUNNING, the future will return if any
-    // Terminated state is triggered
-    SettableFuture<QueryState> future = SettableFuture.create();
-    stateMachine.addStateChangeListener(
-        state -> {
-          if (state == QueryState.RUNNING || state.isDone()) {
-            future.set(state);
-          }
-        });
-
+    long startTime = System.nanoTime();
     try {
-      QueryState state = future.get();
-      // TODO: (xingtanzjr) use more TSStatusCode if the QueryState isn't FINISHED
-      return getExecutionResult(state);
-    } catch (InterruptedException | ExecutionException e) {
-      // TODO: (xingtanzjr) use more accurate error handling
-      if (e instanceof InterruptedException) {
-        Thread.currentThread().interrupt();
+      // Although we monitor the state to transition to RUNNING, the future will return if any
+      // Terminated state is triggered
+      SettableFuture<QueryState> future = SettableFuture.create();
+      stateMachine.addStateChangeListener(
+          state -> {
+            if (state == QueryState.RUNNING || state.isDone()) {
+              future.set(state);
+            }
+          });
+
+      try {
+        QueryState state = future.get();
+        // TODO: (xingtanzjr) use more TSStatusCode if the QueryState isn't FINISHED
+        return getExecutionResult(state);
+      } catch (InterruptedException | ExecutionException e) {
+        // TODO: (xingtanzjr) use more accurate error handling
+        if (e instanceof InterruptedException) {
+          Thread.currentThread().interrupt();
+        }
+        return new ExecutionResult(
+            context.getQueryId(),
+            RpcUtils.getStatus(
+                TSStatusCode.INTERNAL_SERVER_ERROR, stateMachine.getFailureMessage()));
       }
-      return new ExecutionResult(
-          context.getQueryId(),
-          RpcUtils.getStatus(TSStatusCode.INTERNAL_SERVER_ERROR, stateMachine.getFailureMessage()));
+    } finally {
+      StepTracker.trace("getStatus", startTime, System.nanoTime());
+      StepTracker.trace("QueryExecutionLifeCycle", this.queryExecutionStartTime, System.nanoTime());
     }
   }
 
