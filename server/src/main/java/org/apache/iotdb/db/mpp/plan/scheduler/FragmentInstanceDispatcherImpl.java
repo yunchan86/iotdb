@@ -32,6 +32,7 @@ import org.apache.iotdb.db.consensus.SchemaRegionConsensusImpl;
 import org.apache.iotdb.db.exception.mpp.FragmentInstanceDispatchException;
 import org.apache.iotdb.db.exception.sql.SemanticException;
 import org.apache.iotdb.db.mpp.execution.fragment.FragmentInstanceInfo;
+import org.apache.iotdb.db.mpp.plan.StepTracker;
 import org.apache.iotdb.db.mpp.plan.analyze.QueryType;
 import org.apache.iotdb.db.mpp.plan.analyze.SchemaValidator;
 import org.apache.iotdb.db.mpp.plan.planner.plan.FragmentInstance;
@@ -90,7 +91,7 @@ public class FragmentInstanceDispatcherImpl implements IFragInstanceDispatcher {
     if (type == QueryType.READ) {
       return dispatchRead(instances);
     } else {
-      return dispatchWrite(instances);
+      return dispatchWriteSync(instances);
     }
   }
 
@@ -183,10 +184,12 @@ public class FragmentInstanceDispatcherImpl implements IFragInstanceDispatcher {
               client.sendFragmentInstance(sendFragmentInstanceReq);
           return sendFragmentInstanceResp.accepted;
         case WRITE:
+          long startTime = System.nanoTime();
           TSendPlanNodeReq sendPlanNodeReq =
               new TSendPlanNodeReq(
                   new TPlanNode(instance.getFragment().getRoot().serializeToByteBuffer()),
                   instance.getRegionReplicaSet().getRegionId());
+          StepTracker.trace("serialWriteReq", startTime, System.nanoTime());
           TSendPlanNodeResp sendPlanNodeResp = client.sendPlanNode(sendPlanNodeReq);
           return sendPlanNodeResp.accepted;
       }
