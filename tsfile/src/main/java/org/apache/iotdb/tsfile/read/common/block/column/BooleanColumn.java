@@ -26,7 +26,6 @@ import org.openjdk.jol.info.ClassLayout;
 import java.util.Optional;
 
 import static io.airlift.slice.SizeOf.sizeOf;
-import static org.apache.iotdb.tsfile.read.common.block.column.ColumnUtil.checkValidRegion;
 
 public class BooleanColumn implements Column {
 
@@ -80,7 +79,6 @@ public class BooleanColumn implements Column {
 
   @Override
   public boolean getBoolean(int position) {
-    checkReadablePosition(position);
     return values[position + arrayOffset];
   }
 
@@ -91,7 +89,6 @@ public class BooleanColumn implements Column {
 
   @Override
   public TsPrimitiveType getTsPrimitiveType(int position) {
-    checkReadablePosition(position);
     return new TsPrimitiveType.TsBoolean(getBoolean(position));
   }
 
@@ -102,7 +99,6 @@ public class BooleanColumn implements Column {
 
   @Override
   public boolean isNull(int position) {
-    checkReadablePosition(position);
     return valueIsNull != null && valueIsNull[position + arrayOffset];
   }
 
@@ -118,7 +114,6 @@ public class BooleanColumn implements Column {
 
   @Override
   public Column getRegion(int positionOffset, int length) {
-    checkValidRegion(getPositionCount(), positionOffset, length);
     return new BooleanColumn(positionOffset + arrayOffset, length, valueIsNull, values);
   }
 

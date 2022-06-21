@@ -79,7 +79,6 @@ public class FloatColumn implements Column {
 
   @Override
   public float getFloat(int position) {
-    checkReadablePosition(position);
     return values[position + arrayOffset];
   }
 
@@ -90,7 +89,6 @@ public class FloatColumn implements Column {
 
   @Override
   public TsPrimitiveType getTsPrimitiveType(int position) {
-    checkReadablePosition(position);
     return new TsPrimitiveType.TsFloat(getFloat(position));
   }
 
@@ -101,7 +99,6 @@ public class FloatColumn implements Column {
 
   @Override
   public boolean isNull(int position) {
-    checkReadablePosition(position);
     return valueIsNull != null && valueIsNull[position + arrayOffset];
   }
 

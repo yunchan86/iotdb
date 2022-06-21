@@ -160,9 +160,12 @@ public class PageReader implements IPageReader {
 
   @Override
   public TsBlock getAllSatisfiedData() throws IOException {
-    TsBlockBuilder builder = new TsBlockBuilder(Collections.singletonList(dataType));
+    TsBlockBuilder builder =
+        new TsBlockBuilder(
+            (int) pageHeader.getStatistics().getCount(), Collections.singletonList(dataType));
     TimeColumnBuilder timeBuilder = builder.getTimeColumnBuilder();
     ColumnBuilder valueBuilder = builder.getColumnBuilder(0);
+    int count = 0;
     if (filter == null || filter.satisfy(getStatistics())) {
       switch (dataType) {
         case BOOLEAN:
@@ -172,9 +175,10 @@ public class PageReader implements IPageReader {
             if (!isDeleted(timestamp) && (filter == null || filter.satisfy(timestamp, aBoolean))) {
               timeBuilder.writeLong(timestamp);
               valueBuilder.writeBoolean(aBoolean);
-              builder.declarePosition();
+              count++;
             }
           }
+          builder.declarePositions(count);
           break;
         case INT32:
           while (timeDecoder.hasNext(timeBuffer)) {
@@ -183,9 +187,10 @@ public class PageReader implements IPageReader {
             if (!isDeleted(timestamp) && (filter == null || filter.satisfy(timestamp, anInt))) {
               timeBuilder.writeLong(timestamp);
               valueBuilder.writeInt(anInt);
-              builder.declarePosition();
+              count++;
             }
           }
+          builder.declarePositions(count);
           break;
         case INT64:
           while (timeDecoder.hasNext(timeBuffer)) {
@@ -194,9 +199,10 @@ public class PageReader implements IPageReader {
             if (!isDeleted(timestamp) && (filter == null || filter.satisfy(timestamp, aLong))) {
               timeBuilder.writeLong(timestamp);
               valueBuilder.writeLong(aLong);
-              builder.declarePosition();
+              count++;
             }
           }
+          builder.declarePositions(count);
           break;
         case FLOAT:
           while (timeDecoder.hasNext(timeBuffer)) {
@@ -205,9 +211,10 @@ public class PageReader implements IPageReader {
             if (!isDeleted(timestamp) && (filter == null || filter.satisfy(timestamp, aFloat))) {
               timeBuilder.writeLong(timestamp);
               valueBuilder.writeFloat(aFloat);
-              builder.declarePosition();
+              count++;
             }
           }
+          builder.declarePositions(count);
           break;
         case DOUBLE:
           while (timeDecoder.hasNext(timeBuffer)) {
@@ -216,9 +223,10 @@ public class PageReader implements IPageReader {
             if (!isDeleted(timestamp) && (filter == null || filter.satisfy(timestamp, aDouble))) {
               timeBuilder.writeLong(timestamp);
               valueBuilder.writeDouble(aDouble);
-              builder.declarePosition();
+              count++;
             }
           }
+          builder.declarePositions(count);
           break;
         case TEXT:
           while (timeDecoder.hasNext(timeBuffer)) {
@@ -227,9 +235,10 @@ public class PageReader implements IPageReader {
             if (!isDeleted(timestamp) && (filter == null || filter.satisfy(timestamp, aBinary))) {
               timeBuilder.writeLong(timestamp);
               valueBuilder.writeBinary(aBinary);
-              builder.declarePosition();
+              count++;
             }
           }
+          builder.declarePositions(count);
           break;
         default:
           throw new UnSupportedDataTypeException(String.valueOf(dataType));

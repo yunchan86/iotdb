@@ -26,7 +26,6 @@ import org.openjdk.jol.info.ClassLayout;
 import java.util.Optional;
 
 import static io.airlift.slice.SizeOf.sizeOf;
-import static org.apache.iotdb.tsfile.read.common.block.column.ColumnUtil.checkValidRegion;
 
 public class IntColumn implements Column {
 
@@ -79,7 +78,6 @@ public class IntColumn implements Column {
 
   @Override
   public int getInt(int position) {
-    checkReadablePosition(position);
     return values[position + arrayOffset];
   }
 
@@ -90,7 +88,6 @@ public class IntColumn implements Column {
 
   @Override
   public TsPrimitiveType getTsPrimitiveType(int position) {
-    checkReadablePosition(position);
     return new TsPrimitiveType.TsInt(getInt(position));
   }
 
@@ -101,7 +98,6 @@ public class IntColumn implements Column {
 
   @Override
   public boolean isNull(int position) {
-    checkReadablePosition(position);
     return valueIsNull != null && valueIsNull[position + arrayOffset];
   }
 
@@ -117,7 +113,6 @@ public class IntColumn implements Column {
 
   @Override
   public Column getRegion(int positionOffset, int length) {
-    checkValidRegion(getPositionCount(), positionOffset, length);
     return new IntColumn(positionOffset + arrayOffset, length, valueIsNull, values);
   }
 

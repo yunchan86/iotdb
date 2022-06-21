@@ -87,9 +87,7 @@ public class TsBlockBuilder {
     this.types = requireNonNull(types, "types is null");
 
     tsBlockBuilderStatus = new TsBlockBuilderStatus(maxTsBlockBytes);
-    timeColumnBuilder =
-        new TimeColumnBuilder(
-            tsBlockBuilderStatus.createColumnBuilderStatus(), initialExpectedEntries);
+    timeColumnBuilder = new TimeColumnBuilder(null, initialExpectedEntries);
     valueColumnBuilders = new ColumnBuilder[types.size()];
 
     for (int i = 0; i < valueColumnBuilders.length; i++) {
@@ -97,34 +95,22 @@ public class TsBlockBuilder {
       // instead of switch-case
       switch (types.get(i)) {
         case BOOLEAN:
-          valueColumnBuilders[i] =
-              new BooleanColumnBuilder(
-                  tsBlockBuilderStatus.createColumnBuilderStatus(), initialExpectedEntries);
+          valueColumnBuilders[i] = new BooleanColumnBuilder(null, initialExpectedEntries);
           break;
         case INT32:
-          valueColumnBuilders[i] =
-              new IntColumnBuilder(
-                  tsBlockBuilderStatus.createColumnBuilderStatus(), initialExpectedEntries);
+          valueColumnBuilders[i] = new IntColumnBuilder(null, initialExpectedEntries);
           break;
         case INT64:
-          valueColumnBuilders[i] =
-              new LongColumnBuilder(
-                  tsBlockBuilderStatus.createColumnBuilderStatus(), initialExpectedEntries);
+          valueColumnBuilders[i] = new LongColumnBuilder(null, initialExpectedEntries);
           break;
         case FLOAT:
-          valueColumnBuilders[i] =
-              new FloatColumnBuilder(
-                  tsBlockBuilderStatus.createColumnBuilderStatus(), initialExpectedEntries);
+          valueColumnBuilders[i] = new FloatColumnBuilder(null, initialExpectedEntries);
           break;
         case DOUBLE:
-          valueColumnBuilders[i] =
-              new DoubleColumnBuilder(
-                  tsBlockBuilderStatus.createColumnBuilderStatus(), initialExpectedEntries);
+          valueColumnBuilders[i] = new DoubleColumnBuilder(null, initialExpectedEntries);
           break;
         case TEXT:
-          valueColumnBuilders[i] =
-              new BinaryColumnBuilder(
-                  tsBlockBuilderStatus.createColumnBuilderStatus(), initialExpectedEntries);
+          valueColumnBuilders[i] = new BinaryColumnBuilder(null, initialExpectedEntries);
           break;
         default:
           throw new IllegalArgumentException("Unknown data type: " + types.get(i));
@@ -209,14 +195,9 @@ public class TsBlockBuilder {
 
     declaredPositions = 0;
 
-    timeColumnBuilder =
-        (TimeColumnBuilder)
-            timeColumnBuilder.newColumnBuilderLike(
-                tsBlockBuilderStatus.createColumnBuilderStatus());
+    timeColumnBuilder = (TimeColumnBuilder) timeColumnBuilder.newColumnBuilderLike(null);
     for (int i = 0; i < valueColumnBuilders.length; i++) {
-      valueColumnBuilders[i] =
-          valueColumnBuilders[i].newColumnBuilderLike(
-              tsBlockBuilderStatus.createColumnBuilderStatus());
+      valueColumnBuilders[i] = valueColumnBuilders[i].newColumnBuilderLike(null);
     }
   }
 

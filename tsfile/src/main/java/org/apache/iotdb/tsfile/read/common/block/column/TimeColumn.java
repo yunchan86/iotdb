@@ -23,7 +23,6 @@ import org.apache.iotdb.tsfile.file.metadata.enums.TSDataType;
 import org.openjdk.jol.info.ClassLayout;
 
 import static io.airlift.slice.SizeOf.sizeOf;
-import static org.apache.iotdb.tsfile.read.common.block.column.ColumnUtil.checkValidRegion;
 
 public class TimeColumn implements Column {
 
@@ -70,7 +69,6 @@ public class TimeColumn implements Column {
 
   @Override
   public long getLong(int position) {
-    checkReadablePosition(position);
     return values[position + arrayOffset];
   }
 
@@ -100,7 +98,6 @@ public class TimeColumn implements Column {
 
   @Override
   public Column getRegion(int positionOffset, int length) {
-    checkValidRegion(getPositionCount(), positionOffset, length);
     return new TimeColumn(positionOffset + arrayOffset, length, values);
   }
 
