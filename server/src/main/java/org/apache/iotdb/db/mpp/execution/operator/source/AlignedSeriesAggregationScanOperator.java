@@ -93,7 +93,7 @@ public class AlignedSeriesAggregationScanOperator implements DataSourceOperator 
     for (Aggregator aggregator : aggregators) {
       dataTypes.addAll(Arrays.asList(aggregator.getOutputType()));
     }
-    tsBlockBuilder = new TsBlockBuilder(dataTypes);
+    tsBlockBuilder = new TsBlockBuilder(1, dataTypes);
     this.timeRangeIterator = initTimeRangeIterator(groupByTimeParameter, ascending, true);
   }
 

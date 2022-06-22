@@ -25,8 +25,6 @@ import org.openjdk.jol.info.ClassLayout;
 
 import java.util.Optional;
 
-import static io.airlift.slice.SizeOf.sizeOf;
-
 public class IntColumn implements Column {
 
   private static final int INSTANCE_SIZE = ClassLayout.parseClass(IntColumn.class).instanceSize();
@@ -63,7 +61,7 @@ public class IntColumn implements Column {
     }
     this.valueIsNull = valueIsNull;
 
-    retainedSizeInBytes = INSTANCE_SIZE + sizeOf(valueIsNull) + sizeOf(values);
+    retainedSizeInBytes = INSTANCE_SIZE;
   }
 
   @Override

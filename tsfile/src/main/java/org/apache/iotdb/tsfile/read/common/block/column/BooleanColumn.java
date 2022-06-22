@@ -25,8 +25,6 @@ import org.openjdk.jol.info.ClassLayout;
 
 import java.util.Optional;
 
-import static io.airlift.slice.SizeOf.sizeOf;
-
 public class BooleanColumn implements Column {
 
   private static final int INSTANCE_SIZE =
@@ -64,7 +62,7 @@ public class BooleanColumn implements Column {
     }
     this.valueIsNull = valueIsNull;
 
-    retainedSizeInBytes = (INSTANCE_SIZE + sizeOf(valueIsNull) + sizeOf(values));
+    retainedSizeInBytes = INSTANCE_SIZE;
   }
 
   @Override

@@ -76,7 +76,7 @@ public class SlidingWindowAggregationOperator implements ProcessOperator {
     for (Aggregator aggregator : aggregators) {
       outputDataTypes.addAll(Arrays.asList(aggregator.getOutputType()));
     }
-    this.tsBlockBuilder = new TsBlockBuilder(outputDataTypes);
+    this.tsBlockBuilder = new TsBlockBuilder(1, outputDataTypes);
     this.timeRangeIterator = initTimeRangeIterator(groupByTimeParameter, ascending, false);
     this.ascending = ascending;
   }

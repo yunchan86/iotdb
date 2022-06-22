@@ -22,8 +22,6 @@ import org.apache.iotdb.tsfile.file.metadata.enums.TSDataType;
 
 import org.openjdk.jol.info.ClassLayout;
 
-import static io.airlift.slice.SizeOf.sizeOf;
-
 public class TimeColumn implements Column {
 
   private static final int INSTANCE_SIZE = ClassLayout.parseClass(LongColumn.class).instanceSize();
@@ -54,7 +52,7 @@ public class TimeColumn implements Column {
     }
     this.values = values;
 
-    retainedSizeInBytes = INSTANCE_SIZE + sizeOf(values);
+    retainedSizeInBytes = INSTANCE_SIZE;
   }
 
   @Override

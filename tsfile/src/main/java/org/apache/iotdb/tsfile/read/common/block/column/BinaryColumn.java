@@ -26,7 +26,6 @@ import org.openjdk.jol.info.ClassLayout;
 
 import java.util.Optional;
 
-import static io.airlift.slice.SizeOf.sizeOf;
 import static org.apache.iotdb.tsfile.read.common.block.column.ColumnUtil.checkValidRegion;
 
 public class BinaryColumn implements Column {
@@ -66,7 +65,7 @@ public class BinaryColumn implements Column {
     this.valueIsNull = valueIsNull;
 
     // TODO we need to sum up all the Binary's retainedSize here
-    retainedSizeInBytes = INSTANCE_SIZE + sizeOf(valueIsNull) + sizeOf(values);
+    retainedSizeInBytes = INSTANCE_SIZE;
   }
 
   @Override

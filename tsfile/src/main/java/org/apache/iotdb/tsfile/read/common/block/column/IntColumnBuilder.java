@@ -28,7 +28,6 @@ import java.util.Arrays;
 
 import static io.airlift.slice.SizeOf.sizeOf;
 import static java.lang.Math.max;
-import static org.apache.iotdb.tsfile.read.common.block.column.ColumnUtil.calculateBlockResetSize;
 
 public class IntColumnBuilder implements ColumnBuilder {
 
@@ -130,7 +129,8 @@ public class IntColumnBuilder implements ColumnBuilder {
 
   @Override
   public ColumnBuilder newColumnBuilderLike(ColumnBuilderStatus columnBuilderStatus) {
-    return new IntColumnBuilder(columnBuilderStatus, calculateBlockResetSize(positionCount));
+    positionCount = 0;
+    return this;
   }
 
   private void growCapacity() {

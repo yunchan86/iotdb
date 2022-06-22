@@ -116,7 +116,7 @@ public class LocalSinkHandle implements ISinkHandle {
       if (queue.hasNoMoreTsBlocks()) {
         return;
       }
-      logger.info("send TsBlocks. Size: {}", tsBlocks.size());
+      //      logger.info("send TsBlocks. Size: {}", tsBlocks.size());
       synchronized (this) {
         for (TsBlock tsBlock : tsBlocks) {
           blocked = queue.add(tsBlock);

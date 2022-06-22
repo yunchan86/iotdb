@@ -78,20 +78,18 @@ public class LocalSourceHandle implements ISourceHandle {
 
   @Override
   public TsBlock receive() {
-    try (SetThreadName sourceHandleName = new SetThreadName(threadName)) {
-      if (aborted) {
-        throw new IllegalStateException("Source handle is aborted.");
-      }
-      if (!queue.isBlocked().isDone()) {
-        throw new IllegalStateException("Source handle is blocked.");
-      }
-      TsBlock tsBlock;
-      synchronized (queue) {
-        tsBlock = queue.remove();
-      }
-      checkAndInvokeOnFinished();
-      return tsBlock;
+    if (aborted) {
+      throw new IllegalStateException("Source handle is aborted.");
     }
+    if (!queue.isBlocked().isDone()) {
+      throw new IllegalStateException("Source handle is blocked.");
+    }
+    TsBlock tsBlock;
+    synchronized (queue) {
+      tsBlock = queue.remove();
+    }
+    checkAndInvokeOnFinished();
+    return tsBlock;
   }
 
   @Override
