@@ -56,7 +56,7 @@ public class UpdateLastCacheOperator implements ProcessOperator {
 
   private final boolean needUpdateCache;
 
-  private final TsBlockBuilder tsBlockBuilder;
+  private TsBlockBuilder tsBlockBuilder;
 
   public UpdateLastCacheOperator(
       OperatorContext operatorContext,
@@ -109,12 +109,16 @@ public class UpdateLastCacheOperator implements ProcessOperator {
       lastCache.updateLastCache(fullPath, timeValuePair, false, Long.MIN_VALUE);
     }
 
-    tsBlockBuilder.reset();
+    checkArgument(
+        tsBlockBuilder != null, "UpdateLastCacheOperator.next() should only be called once.");
 
     LastQueryUtil.appendLastValue(
         tsBlockBuilder, lastTime, fullPath.getFullPath(), lastValue.getStringValue(), dataType);
 
-    return tsBlockBuilder.build();
+    res = tsBlockBuilder.build();
+    tsBlockBuilder = null;
+
+    return res;
   }
 
   @Override
