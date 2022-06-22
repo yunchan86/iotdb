@@ -221,25 +221,32 @@ public class AlignedSeriesAggregationScanOperator implements DataSourceOperator 
   @SuppressWarnings("squid:S3776")
   private void calcFromBatch(TsBlock tsBlock, TimeRange curTimeRange) {
     // check if the batchData does not contain points in current interval
-    if (tsBlock == null || !satisfied(tsBlock, curTimeRange, ascending)) {
-      return;
-    }
-
-    // skip points that cannot be calculated
-    tsBlock = skipOutOfTimeRangePoints(tsBlock, curTimeRange, ascending);
-
-    for (Aggregator aggregator : aggregators) {
-      // current agg method has been calculated
-      if (aggregator.hasFinalResult()) {
-        continue;
+    if (tsBlock != null && satisfied(tsBlock, curTimeRange, ascending)) {
+      // skip points that cannot be calculated
+      if ((ascending && tsBlock.getStartTime() < curTimeRange.getMin())
+          || (!ascending && tsBlock.getStartTime() > curTimeRange.getMax())) {
+        tsBlock = skipOutOfTimeRangePoints(tsBlock, curTimeRange, ascending);
       }
 
-      aggregator.processTsBlock(tsBlock);
-    }
+      int lastReadRowIndex = 0;
+      for (Aggregator aggregator : aggregators) {
+        // current agg method has been calculated
+        if (aggregator.hasFinalResult()) {
+          continue;
+        }
 
-    // can calc for next interval
-    if (tsBlock.getTsBlockSingleColumnIterator().hasNext()) {
-      preCachedData = tsBlock;
+        lastReadRowIndex = Math.max(lastReadRowIndex, aggregator.processTsBlock(tsBlock));
+      }
+      if (lastReadRowIndex >= tsBlock.getPositionCount()) {
+        tsBlock = null;
+      } else {
+        tsBlock = tsBlock.subTsBlock(lastReadRowIndex);
+      }
+
+      // can calc for next interval
+      if (tsBlock != null && tsBlock.getTsBlockSingleColumnIterator().hasNext()) {
+        preCachedData = tsBlock;
+      }
     }
   }
 
