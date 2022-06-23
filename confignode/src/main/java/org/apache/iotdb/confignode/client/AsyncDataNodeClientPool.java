@@ -222,8 +222,10 @@ public class AsyncDataNodeClientPool {
   public void getHeartBeat(TEndPoint endPoint, THeartbeatReq req, HeartbeatHandler handler) {
     AsyncDataNodeInternalServiceClient client;
     try {
+      LOGGER.info("Thread-{} start to send a heartBeat", Thread.currentThread().getName());
       client = clientManager.borrowClient(endPoint);
       client.getHeartBeat(req, handler);
+      LOGGER.info("Thread-{} sends a heartBeat end", Thread.currentThread().getName());
     } catch (Exception e) {
       LOGGER.error("Asking DataNode: {}, for heartbeat failed", endPoint, e);
     }

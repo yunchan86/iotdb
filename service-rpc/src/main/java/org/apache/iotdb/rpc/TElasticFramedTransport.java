@@ -23,9 +23,13 @@ import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportException;
 import org.apache.thrift.transport.TTransportFactory;
 import org.apache.thrift.transport.layered.TFramedTransport;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 // https://github.com/apache/thrift/blob/master/doc/specs/thrift-rpc.md
 public class TElasticFramedTransport extends TTransport {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(TElasticFramedTransport.class);
 
   public static class Factory extends TTransportFactory {
 
@@ -130,7 +134,28 @@ public class TElasticFramedTransport extends TTransport {
   @Override
   public void flush() throws TTransportException {
     int length = writeBuffer.getPos();
+    byte[] a = new byte[4];
+    TFramedTransport.encodeFrameSize(length, a);
+    LOGGER.info(
+        "Thread-{} fake_i32buf {},{},{},{}",
+        Thread.currentThread().getName(),
+        a[0],
+        a[1],
+        a[2],
+        a[3]);
     TFramedTransport.encodeFrameSize(length, i32buf);
+    LOGGER.info(
+        "Thread-{} i32buf {},{},{},{}",
+        Thread.currentThread().getName(),
+        i32buf[0],
+        i32buf[1],
+        i32buf[2],
+        i32buf[3]);
+    LOGGER.info(
+        "Thread-{} Frame size={}, new writeBuffer.getPos()={}",
+        Thread.currentThread().getName(),
+        length,
+        writeBuffer.getPos());
     underlying.write(i32buf, 0, 4);
     underlying.write(writeBuffer.getBuffer(), 0, length);
     writeBuffer.reset();

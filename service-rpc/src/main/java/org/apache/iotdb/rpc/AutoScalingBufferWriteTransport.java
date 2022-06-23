@@ -30,7 +30,7 @@ import org.apache.thrift.transport.TTransportException;
 public class AutoScalingBufferWriteTransport extends NonOpenTransport {
 
   private final AutoResizingBuffer buf;
-  private int pos;
+  private volatile int pos;
 
   public AutoScalingBufferWriteTransport(int initialCapacity) {
     this.buf = new AutoResizingBuffer(initialCapacity);
