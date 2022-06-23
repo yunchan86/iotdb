@@ -195,7 +195,11 @@ public class SeriesAggregationScanOperator implements DataSourceOperator {
             && curTimeRange.contains(fileStatistics.getStartTime(), fileStatistics.getEndTime())) {
           calcFromStatistics(fileStatistics);
           seriesScanUtil.skipCurrentFile();
-          continue;
+          if (isEndCalc(aggregators)) {
+            break;
+          } else {
+            continue;
+          }
         }
 
         // read chunk
@@ -371,6 +375,9 @@ public class SeriesAggregationScanOperator implements DataSourceOperator {
           && curTimeRange.contains(chunkStatistics.getStartTime(), chunkStatistics.getEndTime())) {
         calcFromStatistics(chunkStatistics);
         seriesScanUtil.skipCurrentChunk();
+        if (isEndCalc(aggregators)) {
+          return true;
+        }
         continue;
       }
       // read page
