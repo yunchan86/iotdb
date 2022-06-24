@@ -460,11 +460,13 @@ public class ClusterPartitionFetcher implements IPartitionFetcher {
       } else {
         for (String devicePath : devicePaths) {
           boolean hit = false;
-          for (String storageGroup : storageGroupCache) {
-            if (PathUtils.isStartWith(devicePath, storageGroup)) {
-              deviceToStorageGroupMap.put(devicePath, storageGroup);
-              hit = true;
-              break;
+          synchronized (storageGroupCache) {
+            for (String storageGroup : storageGroupCache) {
+              if (PathUtils.isStartWith(devicePath, storageGroup)) {
+                deviceToStorageGroupMap.put(devicePath, storageGroup);
+                hit = true;
+                break;
+              }
             }
           }
           if (!hit) {
