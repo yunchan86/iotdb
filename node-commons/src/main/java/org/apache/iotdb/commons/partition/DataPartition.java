@@ -23,6 +23,9 @@ import org.apache.iotdb.common.rpc.thrift.TSeriesPartitionSlot;
 import org.apache.iotdb.common.rpc.thrift.TTimePartitionSlot;
 import org.apache.iotdb.commons.utils.PathUtils;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -33,6 +36,7 @@ import java.util.stream.Collectors;
 
 // TODO: Remove this class
 public class DataPartition extends Partition {
+  private static final Logger logger = LoggerFactory.getLogger(DataPartition.class);
   public static final TRegionReplicaSet NOT_ASSIGNED = new TRegionReplicaSet();
   // Map<StorageGroup, Map<TSeriesPartitionSlot, Map<TTimePartitionSlot, List<TRegionMessage>>>>
   private Map<String, Map<TSeriesPartitionSlot, Map<TTimePartitionSlot, List<TRegionReplicaSet>>>>
@@ -90,6 +94,13 @@ public class DataPartition extends Partition {
     TSeriesPartitionSlot seriesPartitionSlot = calculateDeviceGroupId(deviceName);
     // IMPORTANT TODO: (xingtanzjr) need to handle the situation for write operation that there are
     // more than 1 Regions for one timeSlot
+    if (!dataPartitionMap.containsKey(storageGroup)) {
+      logger.error("dataPartitionMap doesn't contains {}", storageGroup);
+    }
+    if (!dataPartitionMap.get(storageGroup).containsKey(seriesPartitionSlot)) {
+      logger.error(
+          "dataPartitionMap doesn't contains slot {}, {}", storageGroup, seriesPartitionSlot);
+    }
     return dataPartitionMap.get(storageGroup).get(seriesPartitionSlot).entrySet().stream()
         .filter(entry -> timePartitionSlotList.contains(entry.getKey()))
         .flatMap(entry -> entry.getValue().stream())
