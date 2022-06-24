@@ -120,7 +120,7 @@ public class DataPartition extends Partition {
       }
     }
     // TODO: (xingtanzjr) how to handle this exception in IoTDB
-    return null;
+    throw new RuntimeException("StorageGroup not found for device " + deviceName);
   }
 
   @Override
