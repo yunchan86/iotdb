@@ -234,16 +234,14 @@ public class ClusterPartitionFetcher implements IPartitionFetcher {
       Map<String, List<DataPartitionQueryParam>> splitDataPartitionQueryParams =
           splitDataPartitionQueryParam(dataPartitionQueryParams, true);
       DataPartition dataPartition = partitionCache.getDataPartition(splitDataPartitionQueryParams);
-      if (null == dataPartition) {
-        TDataPartitionResp dataPartitionResp =
-            client.getOrCreateDataPartition(
-                constructDataPartitionReq(splitDataPartitionQueryParams));
-        if (dataPartitionResp.getStatus().getCode()
-            == TSStatusCode.SUCCESS_STATUS.getStatusCode()) {
-          dataPartition = parseDataPartitionResp(dataPartitionResp);
-          partitionCache.updateDataPartitionCache(dataPartition);
-        }
+      //      if (null == dataPartition) {
+      TDataPartitionResp dataPartitionResp =
+          client.getOrCreateDataPartition(constructDataPartitionReq(splitDataPartitionQueryParams));
+      if (dataPartitionResp.getStatus().getCode() == TSStatusCode.SUCCESS_STATUS.getStatusCode()) {
+        dataPartition = parseDataPartitionResp(dataPartitionResp);
+        //          partitionCache.updateDataPartitionCache(dataPartition);
       }
+      //      }
       return dataPartition;
     } catch (TException | IOException e) {
       throw new StatementAnalyzeException(
