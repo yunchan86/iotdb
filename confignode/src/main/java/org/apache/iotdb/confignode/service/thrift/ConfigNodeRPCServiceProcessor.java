@@ -550,11 +550,11 @@ public class ConfigNodeRPCServiceProcessor implements IConfigNodeRPCService.Ifac
 
   @Override
   public TSStatus setSchemaTemplate(TSetSchemaTemplateReq req) throws TException {
-    return null;
+    return configManager.setSchemaTemplate(req);
   }
 
   @Override
   public TGetPathsSetTemplatesResp getPathsSetTemplate(String req) throws TException {
-    return null;
+    return configManager.getPathsSetTemplate(req);
   }
 }

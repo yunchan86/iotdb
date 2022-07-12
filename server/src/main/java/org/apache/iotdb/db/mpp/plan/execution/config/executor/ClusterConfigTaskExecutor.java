@@ -444,7 +444,7 @@ public class ClusterConfigTaskExecutor implements IConfigTaskExecutor {
     try (ConfigNodeClient configNodeClient =
         CONFIG_NODE_CLIENT_MANAGER.borrowClient(ConfigNodeInfo.partitionRegionId)) {
       // Send request to some API server
-      ClusterTemplateManager.getInstance().setSchemaTemplate(templateName,path);
+      ClusterTemplateManager.getInstance().setSchemaTemplate(templateName, path);
       // build TSBlock
       future.set(new ConfigTaskResult(TSStatusCode.SUCCESS_STATUS));
     } catch (Exception e) {
@@ -461,7 +461,8 @@ public class ClusterConfigTaskExecutor implements IConfigTaskExecutor {
     try (ConfigNodeClient configNodeClient =
         CONFIG_NODE_CLIENT_MANAGER.borrowClient(ConfigNodeInfo.partitionRegionId)) {
       // Send request to some API server
-      List<PartialPath> listPath = ClusterTemplateManager.getInstance().getPathsSetTemplate(templateName);
+      List<PartialPath> listPath =
+          ClusterTemplateManager.getInstance().getPathsSetTemplate(templateName);
       // build TSBlock
       ShowPathSetTemplateTask.buildTSBlock(listPath, future);
     } catch (Exception e) {
