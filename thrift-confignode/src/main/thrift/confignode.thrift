@@ -465,5 +465,7 @@ service IConfigNodeRPCService {
 
   TGetPathsSetTemplatesResp getPathsSetTemplate(string req)
 
+  common.TSStatus dropSchemaTemplate(string req)
+
 }
 
