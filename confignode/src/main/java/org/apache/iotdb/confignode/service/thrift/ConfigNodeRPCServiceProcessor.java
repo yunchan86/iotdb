@@ -592,4 +592,9 @@ public class ConfigNodeRPCServiceProcessor implements IConfigNodeRPCService.Ifac
   public TGetPathsSetTemplatesResp getPathsSetTemplate(String req) throws TException {
     return configManager.getPathsSetTemplate(req);
   }
+
+  @Override
+  public TSStatus dropSchemaTemplate(String req) throws TException {
+    return configManager.dropSchemaTemplate(req);
+  }
 }

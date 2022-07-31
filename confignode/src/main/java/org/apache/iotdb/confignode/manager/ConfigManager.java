@@ -1024,4 +1024,14 @@ public class ConfigManager implements IManager {
       return new TGetPathsSetTemplatesResp(status);
     }
   }
+
+  @Override
+  public TSStatus dropSchemaTemplate(String req) {
+    TSStatus status = confirmLeader();
+    if (status.getCode() == TSStatusCode.SUCCESS_STATUS.getStatusCode()) {
+      return clusterSchemaManager.dropSchemaTemplate(req);
+    } else {
+      return status;
+    }
+  }
 }

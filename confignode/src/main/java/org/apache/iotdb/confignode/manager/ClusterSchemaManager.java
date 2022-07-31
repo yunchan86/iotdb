@@ -44,6 +44,7 @@ import org.apache.iotdb.confignode.consensus.request.write.SetStorageGroupPlan;
 import org.apache.iotdb.confignode.consensus.request.write.SetTTLPlan;
 import org.apache.iotdb.confignode.consensus.request.write.SetTimePartitionIntervalPlan;
 import org.apache.iotdb.confignode.consensus.request.write.template.CreateSchemaTemplatePlan;
+import org.apache.iotdb.confignode.consensus.request.write.template.DropSchemaTemplatePlan;
 import org.apache.iotdb.confignode.consensus.request.write.template.SetSchemaTemplatePlan;
 import org.apache.iotdb.confignode.consensus.response.AllTemplateSetInfoResp;
 import org.apache.iotdb.confignode.consensus.response.PathInfoResp;
@@ -482,6 +483,17 @@ public class ClusterSchemaManager {
     } else {
       return new TGetPathsSetTemplatesResp(pathInfoResp.getStatus());
     }
+  }
+
+  /**
+   * drop schema template xxx
+   *
+   * @param templateName
+   * @return TSStatus
+   */
+  public TSStatus dropSchemaTemplate(String templateName) {
+    DropSchemaTemplatePlan dropSchemaTemplatePlan = new DropSchemaTemplatePlan(templateName);
+    return getConsensusManager().write(dropSchemaTemplatePlan).getStatus();
   }
 
   public byte[] getAllTemplateSetInfo() {

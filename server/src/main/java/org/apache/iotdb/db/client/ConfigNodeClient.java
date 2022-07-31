@@ -946,6 +946,22 @@ public class ConfigNodeClient
     throw new TException(MSG_RECONNECTION_FAIL);
   }
 
+  @Override
+  public TSStatus dropSchemaTemplate(String req) throws TException {
+    for (int i = 0; i < RETRY_NUM; i++) {
+      try {
+        TSStatus tsStatus = client.dropSchemaTemplate(req);
+        if (!updateConfigNodeLeader(tsStatus)) {
+          return tsStatus;
+        }
+      } catch (TException e) {
+        configLeader = null;
+      }
+      reconnect();
+    }
+    throw new TException(MSG_RECONNECTION_FAIL);
+  }
+
   public static class Factory extends BaseClientFactory<PartitionRegionId, ConfigNodeClient> {
 
     public Factory(
