@@ -73,4 +73,11 @@ public interface ITemplateManager {
   Pair<Template, List<PartialPath>> getAllPathsSetTemplate(String templateName);
 
   Map<Integer, Template> checkAllRelatedTemplate(PartialPath pathPattern);
+
+  /**
+   * drop schema template xx
+   *
+   * @param name templateName
+   */
+  void dropSchemaTemplate(String name);
 }

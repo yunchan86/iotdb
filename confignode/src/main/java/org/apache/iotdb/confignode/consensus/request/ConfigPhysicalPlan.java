@@ -54,6 +54,7 @@ import org.apache.iotdb.confignode.consensus.request.write.SetTTLPlan;
 import org.apache.iotdb.confignode.consensus.request.write.SetTimePartitionIntervalPlan;
 import org.apache.iotdb.confignode.consensus.request.write.UpdateProcedurePlan;
 import org.apache.iotdb.confignode.consensus.request.write.template.CreateSchemaTemplatePlan;
+import org.apache.iotdb.confignode.consensus.request.write.template.DropSchemaTemplatePlan;
 import org.apache.iotdb.confignode.consensus.request.write.template.SetSchemaTemplatePlan;
 import org.apache.iotdb.consensus.common.request.IConsensusRequest;
 import org.apache.iotdb.db.exception.runtime.SerializationRunTimeException;
@@ -226,6 +227,9 @@ public abstract class ConfigPhysicalPlan implements IConsensusRequest {
           break;
         case SetSchemaTemplate:
           req = new SetSchemaTemplatePlan();
+          break;
+        case DropSchemaTemplate:
+          req = new DropSchemaTemplatePlan();
           break;
         case GetNodePathsPartition:
           req = new GetNodePathsPartitionPlan();

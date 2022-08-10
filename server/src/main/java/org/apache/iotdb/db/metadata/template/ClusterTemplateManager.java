@@ -357,4 +357,17 @@ public class ClusterTemplateManager implements ITemplateManager {
       readWriteLock.writeLock().unlock();
     }
   }
+
+  @Override
+  public void dropSchemaTemplate(String name) {
+    try (ConfigNodeClient configNodeClient =
+        CONFIG_NODE_CLIENT_MANAGER.borrowClient(ConfigNodeInfo.partitionRegionId)) {
+      TSStatus tsStatus = configNodeClient.dropSchemaTemplate(name);
+      if (tsStatus.getCode() != TSStatusCode.SUCCESS_STATUS.getStatusCode()) {
+        throw new IoTDBException(tsStatus.getMessage(), tsStatus.getCode());
+      }
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
 }

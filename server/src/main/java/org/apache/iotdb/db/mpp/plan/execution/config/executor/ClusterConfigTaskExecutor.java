@@ -66,6 +66,7 @@ import org.apache.iotdb.db.mpp.plan.statement.metadata.ShowRegionStatement;
 import org.apache.iotdb.db.mpp.plan.statement.metadata.ShowStorageGroupStatement;
 import org.apache.iotdb.db.mpp.plan.statement.metadata.ShowTTLStatement;
 import org.apache.iotdb.db.mpp.plan.statement.metadata.template.CreateSchemaTemplateStatement;
+import org.apache.iotdb.db.mpp.plan.statement.metadata.template.DropSchemaTemplateStatement;
 import org.apache.iotdb.db.mpp.plan.statement.metadata.template.SetSchemaTemplateStatement;
 import org.apache.iotdb.db.mpp.plan.statement.metadata.template.ShowNodesInSchemaTemplateStatement;
 import org.apache.iotdb.db.mpp.plan.statement.metadata.template.ShowPathSetTemplateStatement;
@@ -518,6 +519,22 @@ public class ClusterConfigTaskExecutor implements IConfigTaskExecutor {
       ShowPathSetTemplateTask.buildTSBlock(listPath, future);
     } catch (Exception e) {
       future.setException(e);
+    }
+    return future;
+  }
+
+  @Override
+  public SettableFuture<ConfigTaskResult> dropSchemaTemplate(
+      DropSchemaTemplateStatement dropSchemaTemplateStatement) {
+    SettableFuture<ConfigTaskResult> future = SettableFuture.create();
+    try {
+      String templateName = dropSchemaTemplateStatement.getTemplateName();
+      // Send request to some API server
+      ClusterTemplateManager.getInstance().dropSchemaTemplate(templateName);
+      // build TSBlock
+      future.set(new ConfigTaskResult(TSStatusCode.SUCCESS_STATUS));
+    } catch (Exception e) {
+      future.setException(e.getCause());
     }
     return future;
   }

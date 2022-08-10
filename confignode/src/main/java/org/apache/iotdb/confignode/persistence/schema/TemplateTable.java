@@ -100,6 +100,21 @@ public class TemplateTable {
     }
   }
 
+  public void dropTemplate(String templateName) throws MetadataException {
+    try {
+      templateReadWriteLock.writeLock().lock();
+      Template temp = this.templateMap.get(templateName);
+      if (temp == null) {
+        LOGGER.error(
+            "Failed to drop template, because template name {} is not exists", templateName);
+        throw new MetadataException("Duplicated template name: " + templateName);
+      }
+      this.templateMap.remove(templateName);
+    } finally {
+      templateReadWriteLock.writeLock().unlock();
+    }
+  }
+
   private void serialize(OutputStream outputStream) throws IOException {
     ReadWriteIOUtils.write(templateIdGenerator.get(), outputStream);
     ReadWriteIOUtils.write(templateMap.size(), outputStream);

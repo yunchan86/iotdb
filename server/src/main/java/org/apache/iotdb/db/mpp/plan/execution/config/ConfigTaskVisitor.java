@@ -37,6 +37,7 @@ import org.apache.iotdb.db.mpp.plan.statement.metadata.ShowStorageGroupStatement
 import org.apache.iotdb.db.mpp.plan.statement.metadata.ShowTTLStatement;
 import org.apache.iotdb.db.mpp.plan.statement.metadata.UnSetTTLStatement;
 import org.apache.iotdb.db.mpp.plan.statement.metadata.template.CreateSchemaTemplateStatement;
+import org.apache.iotdb.db.mpp.plan.statement.metadata.template.DropSchemaTemplateStatement;
 import org.apache.iotdb.db.mpp.plan.statement.metadata.template.SetSchemaTemplateStatement;
 import org.apache.iotdb.db.mpp.plan.statement.metadata.template.ShowNodesInSchemaTemplateStatement;
 import org.apache.iotdb.db.mpp.plan.statement.metadata.template.ShowPathSetTemplateStatement;
@@ -170,6 +171,12 @@ public class ConfigTaskVisitor
   public IConfigTask visitShowPathSetTemplate(
       ShowPathSetTemplateStatement showPathSetTemplateStatement, TaskContext context) {
     return new ShowPathSetTemplateTask(showPathSetTemplateStatement);
+  }
+
+  @Override
+  public IConfigTask visitDropSchemaTemplate(
+      DropSchemaTemplateStatement dropSchemaTemplateStatement, TaskContext context) {
+    return new DropSchemaTemplateTask(dropSchemaTemplateStatement);
   }
 
   @Override

@@ -491,9 +491,45 @@ public class ClusterSchemaManager {
    * @param templateName
    * @return TSStatus
    */
-  public TSStatus dropSchemaTemplate(String templateName) {
+  public synchronized TSStatus dropSchemaTemplate(String templateName) {
+    GetSchemaTemplatePlan getSchemaTemplatePlan = new GetSchemaTemplatePlan(templateName);
+    TemplateInfoResp templateResp =
+        (TemplateInfoResp) getConsensusManager().read(getSchemaTemplatePlan).getDataset();
+    if (templateResp.getStatus().getCode() != TSStatusCode.SUCCESS_STATUS.getStatusCode()
+        || templateResp.getTemplateList() == null
+        || templateResp.getTemplateList().isEmpty()) {
+      return templateResp.getStatus();
+    }
+
     DropSchemaTemplatePlan dropSchemaTemplatePlan = new DropSchemaTemplatePlan(templateName);
-    return getConsensusManager().write(dropSchemaTemplatePlan).getStatus();
+    TSStatus tsstatus = getConsensusManager().write(dropSchemaTemplatePlan).getStatus();
+
+    Template template = templateResp.getTemplateList().get(0);
+    // prepare template data and req
+    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+    try {
+      ReadWriteIOUtils.write(1, outputStream);
+      template.serialize(outputStream);
+      ReadWriteIOUtils.write(1, outputStream);
+      // ReadWriteIOUtils.write(path, outputStream);
+    } catch (IOException ignored) {
+    }
+    TUpdateTemplateReq req = new TUpdateTemplateReq();
+    req.setType(TemplateInternalRPCUpdateType.DROP_SCHEMA_TEMPLATE.toByte());
+    req.setTemplateInfo(outputStream.toByteArray());
+
+    List<TDataNodeConfiguration> allDataNodes =
+        configManager.getNodeManager().getRegisteredDataNodes(-1);
+
+    for (TDataNodeConfiguration dataNodeInfo : allDataNodes) {
+      SyncDataNodeClientPool.getInstance()
+          .sendSyncRequestToDataNodeWithRetry(
+              dataNodeInfo.getLocation().getInternalEndPoint(),
+              req,
+              DataNodeRequestType.UPDATE_TEMPLATE);
+    }
+
+    return tsstatus;
   }
 
   public byte[] getAllTemplateSetInfo() {

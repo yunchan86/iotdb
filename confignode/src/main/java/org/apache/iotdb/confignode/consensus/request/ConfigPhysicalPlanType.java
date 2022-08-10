@@ -74,5 +74,6 @@ public enum ConfigPhysicalPlanType {
   CheckTemplateSettable,
   SetSchemaTemplate,
   GetPathsSetTemplate,
-  GetAllTemplateSetInfo;
+  GetAllTemplateSetInfo,
+  DropSchemaTemplate;
 }

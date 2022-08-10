@@ -36,7 +36,7 @@ public class DropSchemaTemplatePlan extends ConfigPhysicalPlan {
   }
 
   public DropSchemaTemplatePlan(String templatNname) {
-    super(ConfigPhysicalPlanType.SetSchemaTemplate);
+    super(ConfigPhysicalPlanType.DropSchemaTemplate);
     this.templatNname = templatNname;
   }
 
@@ -46,7 +46,7 @@ public class DropSchemaTemplatePlan extends ConfigPhysicalPlan {
 
   @Override
   protected void serializeImpl(DataOutputStream stream) throws IOException {
-    stream.writeInt(ConfigPhysicalPlanType.SetSchemaTemplate.ordinal());
+    stream.writeInt(ConfigPhysicalPlanType.DropSchemaTemplate.ordinal());
     ReadWriteIOUtils.write(templatNname, stream);
   }
 

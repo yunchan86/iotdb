@@ -56,6 +56,7 @@ import org.apache.iotdb.confignode.consensus.request.write.SetTimePartitionInter
 import org.apache.iotdb.confignode.consensus.request.write.UpdateProcedurePlan;
 import org.apache.iotdb.confignode.consensus.request.write.UpdateRegionLocationPlan;
 import org.apache.iotdb.confignode.consensus.request.write.template.CreateSchemaTemplatePlan;
+import org.apache.iotdb.confignode.consensus.request.write.template.DropSchemaTemplatePlan;
 import org.apache.iotdb.confignode.consensus.request.write.template.SetSchemaTemplatePlan;
 import org.apache.iotdb.confignode.consensus.response.SchemaNodeManagementResp;
 import org.apache.iotdb.confignode.exception.physical.UnknownPhysicalPlanTypeException;
@@ -225,6 +226,8 @@ public class ConfigPlanExecutor {
         return partitionInfo.updateRegionLocation((UpdateRegionLocationPlan) req);
       case SetSchemaTemplate:
         return clusterSchemaInfo.setSchemaTemplate((SetSchemaTemplatePlan) req);
+      case DropSchemaTemplate:
+        return clusterSchemaInfo.dropSchemaTemplate((DropSchemaTemplatePlan) req);
       default:
         throw new UnknownPhysicalPlanTypeException(req.getType());
     }

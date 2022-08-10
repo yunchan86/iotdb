@@ -333,8 +333,8 @@ public interface IManager {
   /**
    * drop schema template xxx
    *
-   * @param req  String
-   * @return  TSStatus
+   * @param req String
+   * @return TSStatus
    */
   TSStatus dropSchemaTemplate(String req);
 }
