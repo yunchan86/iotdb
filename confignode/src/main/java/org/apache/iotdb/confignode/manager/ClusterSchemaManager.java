@@ -516,7 +516,7 @@ public class ClusterSchemaManager {
     req.setTemplateInfo(outputStream.toByteArray());
 
     List<TDataNodeConfiguration> allDataNodes =
-        configManager.getNodeManager().getRegisteredDataNodes(-1);
+        configManager.getNodeManager().getRegisteredDataNodes();
 
     for (TDataNodeConfiguration dataNodeInfo : allDataNodes) {
       SyncDataNodeClientPool.getInstance()
