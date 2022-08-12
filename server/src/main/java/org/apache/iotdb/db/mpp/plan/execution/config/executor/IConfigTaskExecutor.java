@@ -19,7 +19,6 @@
 
 package org.apache.iotdb.db.mpp.plan.execution.config.executor;
 
-import org.apache.iotdb.common.rpc.thrift.TClearCacheReq;
 import org.apache.iotdb.common.rpc.thrift.TFlushReq;
 import org.apache.iotdb.db.mpp.plan.execution.config.ConfigTaskResult;
 import org.apache.iotdb.db.mpp.plan.statement.metadata.CountStorageGroupStatement;
@@ -62,9 +61,11 @@ public interface IConfigTaskExecutor {
 
   SettableFuture<ConfigTaskResult> setTTL(SetTTLStatement setTTLStatement, String taskName);
 
-  SettableFuture<ConfigTaskResult> flush(TFlushReq tFlushReq);
+  SettableFuture<ConfigTaskResult> merge(boolean isCluster);
 
-  SettableFuture<ConfigTaskResult> clearCache(TClearCacheReq tClearCacheReq);
+  SettableFuture<ConfigTaskResult> flush(TFlushReq tFlushReq, boolean isCluster);
+
+  SettableFuture<ConfigTaskResult> clearCache(boolean isCluster);
 
   SettableFuture<ConfigTaskResult> showCluster();
 

@@ -120,7 +120,7 @@ public class ConfigPlanExecutor {
       throws UnknownPhysicalPlanTypeException, AuthException {
     switch (req.getType()) {
       case GetDataNodeConfiguration:
-        return nodeInfo.getDataNodeInfo((GetDataNodeConfigurationPlan) req);
+        return nodeInfo.getDataNodeConfiguration((GetDataNodeConfigurationPlan) req);
       case CountStorageGroup:
         return clusterSchemaInfo.countMatchedStorageGroups((CountStorageGroupPlan) req);
       case GetStorageGroup:
@@ -132,17 +132,13 @@ public class ConfigPlanExecutor {
       case GetOrCreateSchemaPartition:
         return partitionInfo.getSchemaPartition((GetSchemaPartitionPlan) req);
       case ListUser:
-        return authorInfo.executeListUser();
+        return authorInfo.executeListUsers((AuthorPlan) req);
       case ListRole:
-        return authorInfo.executeListRole();
+        return authorInfo.executeListRoles((AuthorPlan) req);
       case ListUserPrivilege:
         return authorInfo.executeListUserPrivileges((AuthorPlan) req);
       case ListRolePrivilege:
         return authorInfo.executeListRolePrivileges((AuthorPlan) req);
-      case ListUserRoles:
-        return authorInfo.executeListUserRoles((AuthorPlan) req);
-      case ListRoleUsers:
-        return authorInfo.executeListRoleUsers((AuthorPlan) req);
       case GetNodePathsPartition:
         return getSchemaNodeManagementPartition(req);
       case GetRegionInfoList:
