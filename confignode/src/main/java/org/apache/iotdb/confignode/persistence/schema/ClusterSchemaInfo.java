@@ -39,6 +39,7 @@ import org.apache.iotdb.confignode.consensus.request.write.SetStorageGroupPlan;
 import org.apache.iotdb.confignode.consensus.request.write.SetTTLPlan;
 import org.apache.iotdb.confignode.consensus.request.write.SetTimePartitionIntervalPlan;
 import org.apache.iotdb.confignode.consensus.request.write.template.CreateSchemaTemplatePlan;
+import org.apache.iotdb.confignode.consensus.request.write.template.DropSchemaTemplatePlan;
 import org.apache.iotdb.confignode.consensus.request.write.template.SetSchemaTemplatePlan;
 import org.apache.iotdb.confignode.consensus.response.AllTemplateSetInfoResp;
 import org.apache.iotdb.confignode.consensus.response.CountStorageGroupResp;
@@ -711,6 +712,15 @@ public class ClusterSchemaInfo implements SnapshotProcessor {
       storageGroupReadWriteLock.readLock().unlock();
     }
     return schemaMap;
+  }
+
+  public synchronized TSStatus dropSchemaTemplate(DropSchemaTemplatePlan dropSchemaTemplatePlan) {
+    try {
+      templateTable.dropTemplate(dropSchemaTemplatePlan.getTemplatNname());
+      return new TSStatus(TSStatusCode.SUCCESS_STATUS.getStatusCode());
+    } catch (MetadataException e) {
+      return RpcUtils.getStatus(e.getErrorCode(), e.getMessage());
+    }
   }
 
   @TestOnly
