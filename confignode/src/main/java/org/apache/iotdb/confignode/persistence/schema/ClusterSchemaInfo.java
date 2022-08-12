@@ -39,7 +39,6 @@ import org.apache.iotdb.confignode.consensus.request.write.SetStorageGroupPlan;
 import org.apache.iotdb.confignode.consensus.request.write.SetTTLPlan;
 import org.apache.iotdb.confignode.consensus.request.write.SetTimePartitionIntervalPlan;
 import org.apache.iotdb.confignode.consensus.request.write.template.CreateSchemaTemplatePlan;
-import org.apache.iotdb.confignode.consensus.request.write.template.DropSchemaTemplatePlan;
 import org.apache.iotdb.confignode.consensus.request.write.template.SetSchemaTemplatePlan;
 import org.apache.iotdb.confignode.consensus.response.AllTemplateSetInfoResp;
 import org.apache.iotdb.confignode.consensus.response.CountStorageGroupResp;
@@ -214,12 +213,15 @@ public class ClusterSchemaInfo implements SnapshotProcessor {
     TSStatus result = new TSStatus();
     storageGroupReadWriteLock.writeLock().lock();
     try {
-      PartialPath path = new PartialPath(plan.getStorageGroup());
-      if (mTree.isStorageGroupAlreadySet(path)) {
-        mTree
-            .getStorageGroupNodeByStorageGroupPath(path)
-            .getStorageGroupSchema()
-            .setTTL(plan.getTTL());
+      PartialPath patternPath = new PartialPath(plan.getStorageGroupPathPattern());
+      List<PartialPath> matchedPaths = mTree.getBelongedStorageGroups(patternPath);
+      if (matchedPaths.size() != 0) {
+        for (PartialPath path : matchedPaths) {
+          mTree
+              .getStorageGroupNodeByStorageGroupPath(path)
+              .getStorageGroupSchema()
+              .setTTL(plan.getTTL());
+        }
         result.setCode(TSStatusCode.SUCCESS_STATUS.getStatusCode());
       } else {
         result.setCode(TSStatusCode.STORAGE_GROUP_NOT_EXIST.getStatusCode());
@@ -692,13 +694,23 @@ public class ClusterSchemaInfo implements SnapshotProcessor {
     return new AllTemplateSetInfoResp(outputStream.toByteArray());
   }
 
-  public synchronized TSStatus dropSchemaTemplate(DropSchemaTemplatePlan dropSchemaTemplatePlan) {
+  public Map<String, TStorageGroupSchema> getMatchedStorageGroupSchemasByOneName(
+      String[] storageGroupPathPattern) {
+    Map<String, TStorageGroupSchema> schemaMap = new HashMap<>();
+    storageGroupReadWriteLock.readLock().lock();
     try {
-      templateTable.dropTemplate(dropSchemaTemplatePlan.getTemplatNname());
-      return new TSStatus(TSStatusCode.SUCCESS_STATUS.getStatusCode());
+      PartialPath patternPath = new PartialPath(storageGroupPathPattern);
+      List<PartialPath> matchedPaths = mTree.getBelongedStorageGroups(patternPath);
+      for (PartialPath path : matchedPaths) {
+        schemaMap.put(
+            path.getFullPath(), mTree.getStorageGroupNodeByPath(path).getStorageGroupSchema());
+      }
     } catch (MetadataException e) {
-      return RpcUtils.getStatus(e.getErrorCode(), e.getMessage());
+      LOGGER.warn("Error StorageGroup name", e);
+    } finally {
+      storageGroupReadWriteLock.readLock().unlock();
     }
+    return schemaMap;
   }
 
   @TestOnly
